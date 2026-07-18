@@ -19,6 +19,7 @@ interface AuthCtx {
   signUpEmail: (email: string, pass: string, name: string) => Promise<void>
   resetPassword: (email: string) => Promise<void>
   signOut: () => Promise<void>
+  completeOnboarding: () => Promise<void>
 }
 
 const Ctx = createContext<AuthCtx | null>(null)
@@ -75,8 +76,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await firebaseSignOut(auth)
   }
 
+  async function completeOnboarding() {
+    if (!user) return
+    await upsertUserProfile(user.uid, { onboardingComplete: true })
+    const p = await getUserProfile(user.uid)
+    setProfile(p)
+  }
+
   return (
-    <Ctx.Provider value={{ user, profile, loading, configError: !isFirebaseConfigured, signInGoogle, signInEmail, signUpEmail, resetPassword, signOut }}>
+    <Ctx.Provider value={{ user, profile, loading, configError: !isFirebaseConfigured, signInGoogle, signInEmail, signUpEmail, resetPassword, signOut, completeOnboarding }}>
       {children}
     </Ctx.Provider>
   )

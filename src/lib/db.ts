@@ -18,6 +18,7 @@ export interface UserProfile {
   plan: 'free' | 'pro'
   createdAt: Timestamp
   currency: string
+  onboardingComplete?: boolean
 }
 
 export async function upsertUserProfile(uid: string, data: Partial<UserProfile>) {

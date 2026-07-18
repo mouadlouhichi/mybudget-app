@@ -2,8 +2,8 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/auth-context'
-import { saveMonth, subscribeMonth } from '@/lib/db'
-import { defaultMonth, MonthBudget, VariableExpense, FixedExpense, SavingGoal, VARIABLE_TYPES, FIXED_TYPES, CAT_COLOR } from '@/lib/store'
+import { saveMonth, subscribeMonth, getMonth } from '@/lib/db'
+import { emptyMonth, rolloverMonth, MonthBudget, VariableExpense, FixedExpense, SavingGoal, VARIABLE_TYPES, FIXED_TYPES, CAT_COLOR } from '@/lib/store'
 import { CAT_ICON } from '@/lib/category-icons'
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, AreaChart, Area, XAxis } from 'recharts'
 import {
@@ -723,7 +723,7 @@ function SavingsTab({month,onAdd,onDelete,onToggle}:{month:MonthBudget;onAdd:(g:
 type Tab = 'overview'|'variable'|'fixed'|'savings'
 
 export default function Dashboard() {
-  const { user, loading: authLoading, configError, signOut } = useAuth()
+  const { user, profile, loading: authLoading, configError, signOut } = useAuth()
   const router = useRouter()
   const [month, setMonth] = useState<MonthBudget | null>(null)
   const [monthId, setMonthId] = useState(currentMonthId())
@@ -737,14 +737,26 @@ export default function Dashboard() {
   }, [user, authLoading, configError, router])
 
   useEffect(() => {
+    if (!authLoading && user && !configError && profile && !profile.onboardingComplete) router.replace('/onboarding')
+  }, [user, profile, authLoading, configError, router])
+
+  useEffect(() => {
     if (!user) return
+    if (profile && !profile.onboardingComplete) return
     const unsub = subscribeMonth(
       user.uid, monthId,
       async (m) => {
         setError('')
         if (m) { setMonth(m) }
         else {
-          const fresh = defaultMonth(monthId)
+          let fresh: MonthBudget
+          try {
+            const prev = await getMonth(user.uid, prevMonth(monthId))
+            fresh = prev ? rolloverMonth(monthId, prev) : emptyMonth(monthId)
+          } catch (e) {
+            console.error(e)
+            fresh = emptyMonth(monthId)
+          }
           try { await saveMonth(user.uid, fresh) } catch (e) { console.error(e); setError("Couldn't create this month's budget. Check your connection and try again.") }
           setMonth(fresh)
         }
@@ -752,7 +764,7 @@ export default function Dashboard() {
       () => setError("Couldn't load your budget — check your connection or Firestore setup.")
     )
     return () => unsub()
-  }, [user, monthId])
+  }, [user, profile, monthId])
 
   const persist = useCallback(async (updated: MonthBudget) => {
     if (!user) return
