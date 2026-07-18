@@ -73,7 +73,8 @@ export default function OnboardingPage() {
 
   const strategy = MANAGEMENT_STRATEGIES.find(s => s.id === strategyId) ?? MANAGEMENT_STRATEGIES[0]
   const homePart = Math.round(incomeNum * strategy.homeShare)
-  const walletPart = Math.max(0, incomeNum - homePart)
+  const bankPart = Math.round(incomeNum * strategy.bankShare)
+  const walletPart = Math.max(0, incomeNum - homePart - bankPart)
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-5 py-10">
@@ -193,7 +194,11 @@ export default function OnboardingPage() {
                 <p style={{ fontSize: 11, color: 'var(--t3)', fontWeight: 700 }}>MONTHLY INCOME</p>
                 <p className="f-display" style={{ fontSize: 22, fontWeight: 700, color: 'var(--t1)' }}>{incomeNum.toLocaleString('fr-MA')} MAD</p>
               </div>
-              <div className="glass-2" style={{ padding: 14, display: 'flex', gap: 16 }}>
+              <div className="glass-2" style={{ padding: 14, display: 'flex', gap: 12 }}>
+                <div style={{ flex: 1 }}>
+                  <p style={{ fontSize: 11, color: 'var(--t3)', fontWeight: 700 }}>BANK</p>
+                  <p style={{ fontSize: 15, fontWeight: 700, color: 'var(--t1)' }}>{bankPart.toLocaleString('fr-MA')} MAD</p>
+                </div>
                 <div style={{ flex: 1 }}>
                   <p style={{ fontSize: 11, color: 'var(--t3)', fontWeight: 700 }}>HOME</p>
                   <p style={{ fontSize: 15, fontWeight: 700, color: 'var(--t1)' }}>{homePart.toLocaleString('fr-MA')} MAD</p>

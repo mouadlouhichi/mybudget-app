@@ -1,0 +1,1104 @@
+diff --git a/src/app/dashboard/page.tsx b/src/app/dashboard/page.tsx
+index 06729b5..bd361cf 100644
+--- a/src/app/dashboard/page.tsx
++++ b/src/app/dashboard/page.tsx
+@@ -1,15 +1,22 @@
+ 'use client'
+ import { useState, useEffect, useCallback } from 'react'
++import { createPortal } from 'react-dom'
+ import { useRouter } from 'next/navigation'
+ import { useAuth } from '@/lib/auth-context'
+ import { saveMonth, subscribeMonth, getMonth } from '@/lib/db'
+-import { emptyMonth, rolloverMonth, MonthBudget, VariableExpense, FixedExpense, SavingGoal, VARIABLE_TYPES, FIXED_TYPES, CAT_COLOR } from '@/lib/store'
+-import { CAT_ICON } from '@/lib/category-icons'
++import {
++  emptyMonth, rolloverMonth, MonthBudget, VariableExpense, FixedExpense, SavingGoal,
++  VARIABLE_TYPES, FIXED_TYPES, CAT_COLOR, MONEY_PLACES, MONEY_PLACE_LABEL, MoneyPlace,
++  SAVING_SOURCES, SOURCE_TO_PLACE, withMoneyPlaceDelta, moneyPlaceAmount,
++  displayVariableCats, displayFixedCats, categoryColor, nextPaletteColor,
++} from '@/lib/store'
++import { CAT_ICON, CAT_ICON_FALLBACK } from '@/lib/category-icons'
+ import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, AreaChart, Area, XAxis } from 'recharts'
+ import {
+   House, ChartBar, PiggyBank, Receipt, Gear, PlusCircle,
+   Trash, Check, X, CaretRight, CaretDown, SignOut,
+-  Target, TrendUp, TrendDown, CaretLeft, Wallet,
++  Target, TrendUp, TrendDown, CaretLeft, Wallet, Bank,
++  Sliders, ArrowCircleUp,
+ } from '@phosphor-icons/react/dist/ssr'
+ import type { Icon } from '@phosphor-icons/react'
+ 
+@@ -18,6 +25,8 @@ const fmt   = (n: number) => n.toLocaleString('fr-MA', { maximumFractionDigits:
+ const pct   = (a: number, b: number) => b ? Math.min(100, Math.round((a / b) * 100)) : 0
+ const uid   = () => Math.random().toString(36).slice(2, 10)
+ const today = () => new Date().toISOString().slice(0, 10)
++const catIcon = (t: string): Icon => CAT_ICON[t] ?? CAT_ICON_FALLBACK
++const MONEY_PLACE_ICON: Record<MoneyPlace, Icon> = { bank: Bank, home: House, wallet: Wallet }
+ 
+ function prevMonth(id: string) {
+   const [y, m] = id.split('-')
+@@ -45,7 +54,7 @@ function PBar({ value, color = 'var(--accent)', h = 5 }: { value: number; color?
+   )
+ }
+ 
+-/* ── IconBadge — Phosphor icon, one family, tinted background ── */
++/* ── IconBadge - Phosphor icon, one family, tinted background ── */
+ function IconBadge({ Icon: Ico, color, size = 40 }: { Icon: Icon; color: string; size?: number }) {
+   return (
+     <div className="flex items-center justify-center rounded-xl flex-shrink-0"
+@@ -72,12 +81,22 @@ function SectionHeader({ title, action }: { title: string; action?: React.ReactN
+ }
+ 
+ /* ── Modal shell ── */
++// Rendered via a portal straight into document.body. Nesting a `position:
++// fixed` sheet inside a scrollable ancestor (our content area is
++// overflow-y-auto) is unreliable on mobile Safari/Chrome - the sheet can end
++// up positioned against the scrolled content instead of the viewport, which
++// is what made it look "stuck at the top, hidden behind the header". A
++// portal guarantees it's a direct child of <body> and always pinned to the
++// bottom of the real viewport.
+ function Modal({ title, onClose, children }: { title: string; onClose: () => void; children: React.ReactNode }) {
+-  return (
++  const [mounted, setMounted] = useState(false)
++  useEffect(() => { setMounted(true) }, [])
++  if (!mounted) return null
++  return createPortal(
+     <div className="fixed inset-0 z-50 flex items-end justify-center fade-in"
+-      style={{ background: 'rgba(0,0,0,0.7)' }}>
+-      <div className="w-full max-w-md slide-up"
+-        style={{ background: 'var(--surface)', borderRadius: '24px 24px 0 0', border: '1px solid var(--border-2)', borderBottom: 'none', maxHeight: '92vh', overflowY: 'auto' }}>
++      style={{ background: 'rgba(0,0,0,0.7)' }} onClick={onClose}>
++      <div className="w-full max-w-md slide-up" onClick={e => e.stopPropagation()}
++        style={{ background: 'var(--surface)', borderRadius: '24px 24px 0 0', border: '1px solid var(--border-2)', borderBottom: 'none', maxHeight: '92dvh', overflowY: 'auto' }}>
+         <div className="flex items-center justify-between px-5 py-4 sticky top-0 z-10"
+           style={{ background: 'var(--surface)', borderBottom: '1px solid var(--border)' }}>
+           <h2 className="f-display" style={{ fontWeight: 700, fontSize: 17, color: 'var(--t1)' }}>{title}</h2>
+@@ -88,7 +107,8 @@ function Modal({ title, onClose, children }: { title: string; onClose: () => voi
+         <div className="px-5 py-5 space-y-4">{children}</div>
+         <div style={{ height: 28 }} />
+       </div>
+-    </div>
++    </div>,
++    document.body
+   )
+ }
+ 
+@@ -97,23 +117,25 @@ function FL({ label }: { label: string }) {
+ }
+ 
+ /* ── Add Variable ── */
+-function AddVarModal({ onClose, onAdd }: { onClose: () => void; onAdd: (e: Omit<VariableExpense,'id'>) => void }) {
++function AddVarModal({ month, onClose, onAdd }: { month: MonthBudget; onClose: () => void; onAdd: (e: Omit<VariableExpense,'id'>) => void }) {
++  const cats = displayVariableCats(month)
+   const [name, setName] = useState('')
+   const [amount, setAmount] = useState('')
+-  const [type, setType] = useState<typeof VARIABLE_TYPES[0]>('Alimentation')
++  const [type, setType] = useState<string>(cats[0] ?? 'Autre')
+   const [date, setDate] = useState(today())
+   return (
+     <Modal title="New Expense" onClose={onClose}>
+       <div>
+         <FL label="Category" />
+         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 8 }}>
+-          {VARIABLE_TYPES.map(t => {
+-            const Ico = CAT_ICON[t]
++          {cats.map(t => {
++            const Ico = catIcon(t)
++            const c = categoryColor(month, t)
+             return (
+               <button key={t} onClick={() => setType(t)} className="tap flex flex-col items-center gap-1.5 py-2.5 rounded-xl"
+-                style={{ background: type===t ? CAT_COLOR[t]+'22':'var(--surface-2)', border:`1.5px solid ${type===t?CAT_COLOR[t]:'var(--border)'}` }}>
+-                <Ico size={18} weight="bold" color={type===t?CAT_COLOR[t]:'var(--t3)'} />
+-                <span style={{ fontSize: 8, fontWeight: 700, color: type===t?CAT_COLOR[t]:'var(--t3)', textAlign:'center', lineHeight:1.2 }}>{t}</span>
++                style={{ background: type===t ? c+'22':'var(--surface-2)', border:`1.5px solid ${type===t?c:'var(--border)'}` }}>
++                <Ico size={18} weight="bold" color={type===t?c:'var(--t3)'} />
++                <span style={{ fontSize: 8, fontWeight: 700, color: type===t?c:'var(--t3)', textAlign:'center', lineHeight:1.2 }}>{t}</span>
+               </button>
+             )
+           })}
+@@ -132,20 +154,22 @@ function AddVarModal({ onClose, onAdd }: { onClose: () => void; onAdd: (e: Omit<
+ }
+ 
+ /* ── Add Fixed ── */
+-function AddFixedModal({ onClose, onAdd }: { onClose: () => void; onAdd: (e: Omit<FixedExpense,'id'>) => void }) {
++function AddFixedModal({ month, onClose, onAdd }: { month: MonthBudget; onClose: () => void; onAdd: (e: Omit<FixedExpense,'id'>) => void }) {
++  const cats = displayFixedCats(month)
+   const [name, setName]=useState(''); const [amount, setAmount]=useState(''); const [base,setBase]=useState('')
+-  const [type,setType]=useState<typeof FIXED_TYPES[0]>('Facture'); const [date,setDate]=useState(today())
++  const [type,setType]=useState<string>(cats[0] ?? 'Autre'); const [date,setDate]=useState(today())
+   return (
+     <Modal title="New Fixed Charge" onClose={onClose}>
+       <div><FL label="Type"/>
+         <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:8}}>
+-          {FIXED_TYPES.map(t=>{
+-            const Ico = CAT_ICON[t]
++          {cats.map(t=>{
++            const Ico = catIcon(t)
++            const c = categoryColor(month, t)
+             return (
+               <button key={t} onClick={()=>setType(t)} className="tap flex items-center gap-2 px-3 py-2.5 rounded-xl"
+-                style={{background:type===t?CAT_COLOR[t]+'22':'var(--surface-2)',border:`1.5px solid ${type===t?CAT_COLOR[t]:'var(--border)'}`}}>
+-                <Ico size={15} weight="bold" color={type===t?CAT_COLOR[t]:'var(--t2)'} />
+-                <span style={{fontSize:11,fontWeight:700,color:type===t?CAT_COLOR[t]:'var(--t2)'}}>{t}</span>
++                style={{background:type===t?c+'22':'var(--surface-2)',border:`1.5px solid ${type===t?c:'var(--border)'}`}}>
++                <Ico size={15} weight="bold" color={type===t?c:'var(--t2)'} />
++                <span style={{fontSize:11,fontWeight:700,color:type===t?c:'var(--t2)'}}>{t}</span>
+               </button>
+             )
+           })}
+@@ -165,26 +189,28 @@ function AddFixedModal({ onClose, onAdd }: { onClose: () => void; onAdd: (e: Omi
+ }
+ 
+ /* ── Add Saving ── */
+-function AddSavingModal({ onClose, onAdd }: { onClose:()=>void; onAdd:(g:Omit<SavingGoal,'id'>)=>void }) {
++function AddSavingModal({ month, onClose, onAdd }: { month: MonthBudget; onClose:()=>void; onAdd:(g:Omit<SavingGoal,'id'>)=>void }) {
+   const [name,setName]=useState(''); const [target,setTarget]=useState(''); const [current,setCurrent]=useState('')
+-  const [source,setSource]=useState<'HOME'|'BANK SAVING'|'WALLET'>('HOME')
++  const [source,setSource]=useState<typeof SAVING_SOURCES[number]>('HOME')
+   return (
+     <Modal title="New Saving Goal" onClose={onClose}>
+       <div><FL label="Goal Name"/><input className="field" placeholder="e.g. Vacation, Emergency fund" value={name} onChange={e=>setName(e.target.value)} autoFocus/></div>
+-      <div><FL label="Source"/>
++      <div><FL label="Fund it from"/>
+         <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:8}}>
+-          {(['HOME','BANK SAVING','WALLET'] as const).map(s=>(
++          {SAVING_SOURCES.map(s=>(
+             <button key={s} onClick={()=>setSource(s)} className="tap py-2.5 rounded-xl"
+               style={{fontSize:11,fontWeight:700,background:source===s?'var(--accent-tint)':'var(--surface-2)',border:`1.5px solid ${source===s?'var(--accent)':'var(--border)'}`,color:source===s?'var(--accent)':'var(--t2)'}}>
+-              {s}
++              {MONEY_PLACE_LABEL[SOURCE_TO_PLACE[s]]}
++              <div style={{fontSize:9,fontWeight:600,color:'var(--t3)',marginTop:2}}>{fmt(moneyPlaceAmount(month,SOURCE_TO_PLACE[s]))} avail.</div>
+             </button>
+           ))}
+         </div>
+       </div>
+       <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12}}>
+         <div><FL label="Target (MAD)"/><input className="field" type="number" placeholder="0" value={target} onChange={e=>setTarget(e.target.value)}/></div>
+-        <div><FL label="Saved so far"/><input className="field" type="number" placeholder="0" value={current} onChange={e=>setCurrent(e.target.value)}/></div>
++        <div><FL label="Fund now with"/><input className="field" type="number" placeholder="0" value={current} onChange={e=>setCurrent(e.target.value)}/></div>
+       </div>
++      <p style={{fontSize:11,color:'var(--t3)'}}>Whatever you fund now moves out of the money place above and into this goal.</p>
+       <button className="btn-primary tap" onClick={()=>{if(!name||!target)return;onAdd({name,target:parseFloat(target),current:parseFloat(current)||0,source,active:parseFloat(current)>0});onClose()}}>
+         <PlusCircle size={16} weight="bold"/> Create Goal
+       </button>
+@@ -192,28 +218,58 @@ function AddSavingModal({ onClose, onAdd }: { onClose:()=>void; onAdd:(g:Omit<Sa
+   )
+ }
+ 
+-/* ── Settings Modal ── */
+-function SettingsModal({ month, user, onClose, onSave, onSignOut }: { month: MonthBudget; user: any; onClose:()=>void; onSave:(p:Partial<MonthBudget>)=>void; onSignOut:()=>void }) {
++/* ── Add Funds to an existing Saving Goal ── */
++function AddFundsModal({ month, goal, onClose, onAdd }: { month: MonthBudget; goal: SavingGoal; onClose: () => void; onAdd: (amount: number, place: MoneyPlace) => void }) {
++  const [amount, setAmount] = useState('')
++  const [place, setPlace] = useState<MoneyPlace>(SOURCE_TO_PLACE[goal.source])
++  const amt = parseFloat(amount) || 0
++  const insufficient = amt > moneyPlaceAmount(month, place)
++  return (
++    <Modal title={`Add to "${goal.name}"`} onClose={onClose}>
++      <div><FL label="From money place" />
++        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8 }}>
++          {MONEY_PLACES.map(p => (
++            <button key={p} onClick={() => setPlace(p)} className="tap py-2.5 rounded-xl"
++              style={{ fontSize: 11, fontWeight: 700, background: place===p?'var(--accent-tint)':'var(--surface-2)', border:`1.5px solid ${place===p?'var(--accent)':'var(--border)'}`, color: place===p?'var(--accent)':'var(--t2)' }}>
++              {MONEY_PLACE_LABEL[p]}
++              <div style={{ fontSize: 9, fontWeight: 600, color: 'var(--t3)', marginTop: 2 }}>{fmt(moneyPlaceAmount(month, p))} avail.</div>
++            </button>
++          ))}
++        </div>
++      </div>
++      <div><FL label="Amount (MAD)" /><input className="field" type="number" placeholder="0" value={amount} onChange={e => setAmount(e.target.value)} autoFocus /></div>
++      {insufficient && <p style={{ fontSize: 11, color: 'var(--bad)' }}>That's more than what's currently in {MONEY_PLACE_LABEL[place]}.</p>}
++      <button className="btn-primary tap" disabled={!amt || insufficient} onClick={() => { onAdd(amt, place); onClose() }}>
++        <ArrowCircleUp size={16} weight="bold" /> Add Funds
++      </button>
++    </Modal>
++  )
++}
++function SettingsModal({ month, user, onClose, onSave, onSignOut, onManageCategories }: { month: MonthBudget; user: any; onClose:()=>void; onSave:(p:Partial<MonthBudget>)=>void; onSignOut:()=>void; onManageCategories:()=>void }) {
+   const [total,setTotal]=useState(String(month.totalBudget))
++  const [bank,setBank]=useState(String(month.bankPart))
+   const [home,setHome]=useState(String(month.homePart))
+   const [wallet,setWallet]=useState(String(month.walletPart))
++  const varCats = displayVariableCats(month)
++  const fixedCats = displayFixedCats(month)
+   const [varBases,setVarBases]=useState<Record<string,string>>(
+-    Object.fromEntries(VARIABLE_TYPES.map(t=>[t,String(month.variableCategoryBases[t]??0)]))
++    Object.fromEntries(varCats.map(t=>[t,String(month.variableCategoryBases[t]??0)]))
+   )
+   const [fixedBases,setFixedBases]=useState<Record<string,string>>(
+-    Object.fromEntries(FIXED_TYPES.map(t=>[t,String(month.fixedCategoryBases[t]??0)]))
++    Object.fromEntries(fixedCats.map(t=>[t,String(month.fixedCategoryBases[t]??0)]))
+   )
+   const [showCats,setShowCats]=useState(false)
+ 
+   function save() {
+     const nextVarBases = { ...month.variableCategoryBases }
+-    VARIABLE_TYPES.forEach(t => { const v = parseFloat(varBases[t]); if (!isNaN(v)) nextVarBases[t] = v })
++    varCats.forEach(t => { const v = parseFloat(varBases[t]); if (!isNaN(v)) nextVarBases[t] = v })
+     const nextFixedBases = { ...month.fixedCategoryBases }
+-    FIXED_TYPES.forEach(t => { const v = parseFloat(fixedBases[t]); if (!isNaN(v)) nextFixedBases[t] = v })
++    fixedCats.forEach(t => { const v = parseFloat(fixedBases[t]); if (!isNaN(v)) nextFixedBases[t] = v })
+     onSave({
+       totalBudget: parseFloat(total) || month.totalBudget,
+-      homePart: parseFloat(home) || month.homePart,
+-      walletPart: parseFloat(wallet) || month.walletPart,
++      bankPart: parseFloat(bank) || 0,
++      homePart: parseFloat(home) || 0,
++      walletPart: parseFloat(wallet) || 0,
+       variableCategoryBases: nextVarBases,
+       fixedCategoryBases: nextFixedBases,
+     })
+@@ -236,11 +292,19 @@ function SettingsModal({ month, user, onClose, onSave, onSignOut }: { month: Mon
+         <Chip label="FREE" color="var(--accent)" solid/>
+       </div>
+       <div><FL label="Total Monthly Budget (MAD)"/><input className="field" type="number" value={total} onChange={e=>setTotal(e.target.value)}/></div>
+-      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12}}>
+-        <div><FL label="Home"/><input className="field" type="number" value={home} onChange={e=>setHome(e.target.value)}/></div>
+-        <div><FL label="Wallet"/><input className="field" type="number" value={wallet} onChange={e=>setWallet(e.target.value)}/></div>
++      <div><FL label="Money places"/>
++        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:12}}>
++          <div><FL label="Bank"/><input className="field" type="number" value={bank} onChange={e=>setBank(e.target.value)}/></div>
++          <div><FL label="Home"/><input className="field" type="number" value={home} onChange={e=>setHome(e.target.value)}/></div>
++          <div><FL label="Wallet"/><input className="field" type="number" value={wallet} onChange={e=>setWallet(e.target.value)}/></div>
++        </div>
+       </div>
+ 
++      <button className="tap flex items-center justify-between w-full glass-2" style={{padding:'12px 14px'}} onClick={onManageCategories}>
++        <span style={{display:'flex',alignItems:'center',gap:8,fontSize:13,fontWeight:700,color:'var(--t1)'}}><Sliders size={15}/>Manage categories</span>
++        <CaretRight size={14} color="var(--t3)"/>
++      </button>
++
+       <button className="tap flex items-center justify-between w-full glass-2" style={{padding:'12px 14px'}} onClick={()=>setShowCats(s=>!s)}>
+         <span style={{fontSize:13,fontWeight:700,color:'var(--t1)'}}>Category budgets</span>
+         {showCats ? <CaretDown size={14} color="var(--t3)"/> : <CaretRight size={14} color="var(--t3)"/>}
+@@ -250,11 +314,11 @@ function SettingsModal({ month, user, onClose, onSave, onSignOut }: { month: Mon
+           <div>
+             <FL label="Variable categories"/>
+             <div style={{display:'flex',flexDirection:'column',gap:8}}>
+-              {VARIABLE_TYPES.map(t=>(
++              {varCats.map(t=>(
+                 <div key={t} style={{display:'flex',alignItems:'center',gap:10}}>
+                   <span style={{flex:1,fontSize:12,color:'var(--t2)'}}>{t}</span>
+                   <input className="field" type="number" style={{width:100,padding:'8px 10px'}}
+-                    value={varBases[t]} onChange={e=>setVarBases(b=>({...b,[t]:e.target.value}))}/>
++                    value={varBases[t]??'0'} onChange={e=>setVarBases(b=>({...b,[t]:e.target.value}))}/>
+                 </div>
+               ))}
+             </div>
+@@ -262,11 +326,11 @@ function SettingsModal({ month, user, onClose, onSave, onSignOut }: { month: Mon
+           <div>
+             <FL label="Fixed categories"/>
+             <div style={{display:'flex',flexDirection:'column',gap:8}}>
+-              {FIXED_TYPES.map(t=>(
++              {fixedCats.map(t=>(
+                 <div key={t} style={{display:'flex',alignItems:'center',gap:10}}>
+                   <span style={{flex:1,fontSize:12,color:'var(--t2)'}}>{t}</span>
+                   <input className="field" type="number" style={{width:100,padding:'8px 10px'}}
+-                    value={fixedBases[t]} onChange={e=>setFixedBases(b=>({...b,[t]:e.target.value}))}/>
++                    value={fixedBases[t]??'0'} onChange={e=>setFixedBases(b=>({...b,[t]:e.target.value}))}/>
+                 </div>
+               ))}
+             </div>
+@@ -283,7 +347,7 @@ function SettingsModal({ month, user, onClose, onSave, onSignOut }: { month: Mon
+         </div>
+         <div className="flex-1">
+           <p style={{fontWeight:700,fontSize:13,color:'var(--t1)'}}>Upgrade to Pro</p>
+-          <p style={{fontSize:11,color:'var(--t2)'}}>Unlimited months, insights, export — coming soon</p>
++          <p style={{fontSize:11,color:'var(--t2)'}}>Unlimited months, insights, export - coming soon</p>
+         </div>
+         <button disabled className="tap" title="Pro plan launching soon"
+           style={{background:'var(--accent)',color:'var(--accent-ink)',padding:'7px 14px',borderRadius:999,fontSize:12,fontWeight:700,whiteSpace:'nowrap',border:'none',opacity:0.55,cursor:'not-allowed'}}>
+@@ -297,6 +361,90 @@ function SettingsModal({ month, user, onClose, onSave, onSignOut }: { month: Mon
+   )
+ }
+ 
++/* ── Manage Categories Modal ── */
++function ManageCategoriesModal({ month, onClose, onSave }: { month: MonthBudget; onClose: () => void; onSave: (p: Partial<MonthBudget>) => void }) {
++  const [kind, setKind] = useState<'variable'|'fixed'>('variable')
++  const [activeVar, setActiveVar] = useState<string[]>(month.activeVariableCategories?.length ? month.activeVariableCategories : VARIABLE_TYPES)
++  const [activeFixed, setActiveFixed] = useState<string[]>(month.activeFixedCategories?.length ? month.activeFixedCategories : FIXED_TYPES)
++  const [colors, setColors] = useState<Record<string,string>>(month.categoryColors || {})
++  const [newName, setNewName] = useState('')
++
++  const isVar = kind === 'variable'
++  const active = isVar ? activeVar : activeFixed
++  const setActive = isVar ? setActiveVar : setActiveFixed
++  const base = isVar ? VARIABLE_TYPES : FIXED_TYPES
++  const usedInExpenses = isVar ? month.variableExpenses.map(e=>e.type) : month.fixedExpenses.map(e=>e.type)
++  const all = Array.from(new Set([...base, ...active, ...usedInExpenses]))
++
++  function toggle(t: string) {
++    setActive(a => a.includes(t) ? a.filter(x=>x!==t) : [...a, t])
++  }
++  function removeCustom(t: string) {
++    if (typeof window !== 'undefined' && !window.confirm(`Remove category "${t}"? Existing expenses keep it, but it won't be selectable anymore.`)) return
++    setActive(a => a.filter(x=>x!==t))
++  }
++  function addCategory() {
++    const name = newName.trim()
++    if (!name || all.includes(name)) return
++    const color = colors[name] ?? nextPaletteColor({ ...month, categoryColors: colors })
++    setColors(c => ({ ...c, [name]: color }))
++    setActive(a => [...a, name])
++    setNewName('')
++  }
++
++  function save() {
++    onSave({ activeVariableCategories: activeVar, activeFixedCategories: activeFixed, categoryColors: colors })
++    onClose()
++  }
++
++  return (
++    <Modal title="Manage Categories" onClose={onClose}>
++      <div style={{display:'flex',gap:8}}>
++        {(['variable','fixed'] as const).map(k=>(
++          <button key={k} onClick={()=>setKind(k)} className="tap" style={{flex:1,padding:'9px 0',borderRadius:'var(--r-field)',
++            background:kind===k?'var(--accent-tint)':'var(--surface-2)',border:`1.5px solid ${kind===k?'var(--accent)':'var(--border)'}`,
++            fontSize:12,fontWeight:700,color:kind===k?'var(--accent)':'var(--t2)'}}>
++            {k==='variable'?'Expense categories':'Fixed bill categories'}
++          </button>
++        ))}
++      </div>
++
++      <div style={{display:'flex',flexDirection:'column',gap:6}}>
++        {all.map(t=>{
++          const isOn = active.includes(t)
++          const isCustom = !base.includes(t)
++          const c = colors[t] ?? CAT_COLOR[t] ?? '#8A8175'
++          const Ico = catIcon(t)
++          return (
++            <div key={t} className="glass-2" style={{display:'flex',alignItems:'center',gap:10,padding:'9px 12px',opacity:isOn?1:0.5}}>
++              <div style={{width:26,height:26,borderRadius:8,background:c+'22',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
++                <Ico size={13} weight="bold" color={c}/>
++              </div>
++              <span style={{flex:1,fontSize:13,fontWeight:600,color:'var(--t1)'}}>{t}{isCustom && <span style={{fontSize:9,fontWeight:700,color:'var(--t3)'}}> · custom</span>}</span>
++              <button onClick={()=>toggle(t)} className="tap" style={{width:38,height:22,borderRadius:999,background:isOn?'var(--accent)':'var(--surface-3)',position:'relative',border:'none',flexShrink:0}}>
++                <div style={{width:16,height:16,borderRadius:'50%',background:'#fff',position:'absolute',top:3,left:isOn?19:3,transition:'left 0.15s'}}/>
++              </button>
++              {isCustom && (
++                <button onClick={()=>removeCustom(t)} className="tap" style={{color:'var(--t3)',padding:4,flexShrink:0}}><Trash size={13}/></button>
++              )}
++            </div>
++          )
++        })}
++      </div>
++
++      <div style={{display:'flex',gap:8}}>
++        <input className="field" placeholder={`New ${isVar?'expense':'fixed bill'} category`} value={newName}
++          onChange={e=>setNewName(e.target.value)} onKeyDown={e=>{if(e.key==='Enter'){e.preventDefault();addCategory()}}} />
++        <button onClick={addCategory} className="btn-primary tap" style={{width:'auto',padding:'0 16px'}}><PlusCircle size={16} weight="bold"/></button>
++      </div>
++
++      <button className="btn-primary tap" onClick={save}>
++        <Check size={16} weight="bold"/> Save Categories
++      </button>
++    </Modal>
++  )
++}
++
+ /* ══════════════════════ OVERVIEW ══════════════════════ */
+ function Overview({ month }: { month: MonthBudget }) {
+   const totalFixed = month.fixedExpenses.reduce((s,e)=>s+e.amount,0)
+@@ -316,7 +464,7 @@ function Overview({ month }: { month: MonthBudget }) {
+     {name:'Free',value:Math.max(0,remaining),color:'var(--surface-3)'},
+   ].filter(d=>d.value>0)
+ 
+-  const topCats = VARIABLE_TYPES
++  const topCats = displayVariableCats(month)
+     .map(t=>({type:t,total:month.variableExpenses.filter(e=>e.type===t).reduce((s,e)=>s+e.amount,0)}))
+     .filter(c=>c.total>0).sort((a,b)=>b.total-a.total).slice(0,5)
+ 
+@@ -330,7 +478,7 @@ function Overview({ month }: { month: MonthBudget }) {
+ 
+   return (
+     <div className="space-y-4 slide-up">
+-      {/* Hero card — solid off-black, gold accent border, no gradient wash */}
++      {/* Hero card - solid off-black, gold accent border, no gradient wash */}
+       <div className="relative" style={{borderRadius:'var(--r-card)',padding:24,background:'var(--surface)',border:'1px solid var(--border-2)',boxShadow:'var(--shadow-card)'}}>
+         <div className="flex items-start justify-between mb-6">
+           <div>
+@@ -357,21 +505,23 @@ function Overview({ month }: { month: MonthBudget }) {
+           <PBar value={spentPct} color="var(--accent)" h={8}/>
+         </div>
+ 
+-        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12}}>
+-          {[{Ico:House,label:'Home',value:month.homePart},{Ico:Wallet,label:'Wallet',value:month.walletPart}].map(p=>(
+-            <div key={p.label} className="glass-2" style={{padding:'12px 14px'}}>
++        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:10}}>
++          {MONEY_PLACES.map(p=>(
++            <div key={p} className="glass-2" style={{padding:'12px 10px'}}>
+               <div className="flex items-center gap-1.5" style={{marginBottom:6}}>
+-                <p.Ico size={13} weight="bold" color="var(--t3)"/>
+-                <p style={{fontSize:11,color:'var(--t3)',fontWeight:600}}>{p.label}</p>
++                {(() => { const Ico = MONEY_PLACE_ICON[p]; return <Ico size={13} weight="bold" color="var(--t3)"/> })()}
++                <p style={{fontSize:11,color:'var(--t3)',fontWeight:600}}>{MONEY_PLACE_LABEL[p]}</p>
+               </div>
+-              <p className="f-display num" style={{fontSize:19,fontWeight:700,color:'var(--t1)'}}>{fmt(p.value)}</p>
++              <p className="f-display num" style={{fontSize:17,fontWeight:700,color:'var(--t1)'}}>{fmt(moneyPlaceAmount(month,p))}</p>
+             </div>
+           ))}
+         </div>
+       </div>
+ 
++      {/* Desktop: side-by-side with stat tiles + trajectory */}
++      <div className="md:grid md:grid-cols-3 md:gap-4 md:space-y-0 space-y-4">
+       {/* 3 stat tiles */}
+-      <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:12}}>
++      <div className="md:col-span-3" style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:12}}>
+         {[
+           {label:'Fixed',val:totalFixed,Ico:Receipt,color:'var(--accent-dim)'},
+           {label:'Variable',val:totalVar,Ico:ChartBar,color:'var(--accent)'},
+@@ -388,7 +538,7 @@ function Overview({ month }: { month: MonthBudget }) {
+       </div>
+ 
+       {/* Spend trajectory */}
+-      <div className="glass" style={{padding:20}}>
++      <div className="glass md:col-span-1" style={{padding:20}}>
+         <SectionHeader title="Spend Trajectory" action={<Chip label="This Month" color="var(--accent)" solid/>}/>
+         <div style={{height:80}}>
+           <ResponsiveContainer width="100%" height="100%">
+@@ -410,7 +560,7 @@ function Overview({ month }: { month: MonthBudget }) {
+       </div>
+ 
+       {/* Breakdown donut */}
+-      <div className="glass" style={{padding:20}}>
++      <div className="glass md:col-span-1" style={{padding:20}}>
+         <SectionHeader title="Breakdown"/>
+         <div style={{display:'flex',alignItems:'center',gap:16}}>
+           <div style={{width:120,height:120,flexShrink:0}}>
+@@ -444,24 +594,25 @@ function Overview({ month }: { month: MonthBudget }) {
+ 
+       {/* Top categories */}
+       {topCats.length>0&&(
+-        <div className="glass" style={{padding:20}}>
++        <div className="glass md:col-span-1" style={{padding:20}}>
+           <SectionHeader title="Top Spending"/>
+           <div style={{display:'flex',flexDirection:'column',gap:12}}>
+             {topCats.map(cat=>(
+               <div key={cat.type} style={{display:'flex',alignItems:'center',gap:12}}>
+-                <IconBadge Icon={CAT_ICON[cat.type]} color={CAT_COLOR[cat.type]}/>
++                <IconBadge Icon={catIcon(cat.type)} color={categoryColor(month,cat.type)}/>
+                 <div style={{flex:1}}>
+                   <div style={{display:'flex',justifyContent:'space-between',marginBottom:5}}>
+                     <span style={{fontSize:13,fontWeight:600,color:'var(--t1)'}}>{cat.type}</span>
+-                    <span className="num" style={{fontSize:13,fontWeight:700,color:CAT_COLOR[cat.type]}}>{fmt(cat.total)} MAD</span>
++                    <span className="num" style={{fontSize:13,fontWeight:700,color:categoryColor(month,cat.type)}}>{fmt(cat.total)} MAD</span>
+                   </div>
+-                  <PBar value={pct(cat.total,month.variableCategoryBases[cat.type])} color={CAT_COLOR[cat.type]} h={5}/>
++                  <PBar value={pct(cat.total,month.variableCategoryBases[cat.type])} color={categoryColor(month,cat.type)} h={5}/>
+                 </div>
+               </div>
+             ))}
+           </div>
+         </div>
+       )}
++      </div>
+     </div>
+   )
+ }
+@@ -470,10 +621,10 @@ function Overview({ month }: { month: MonthBudget }) {
+ function VariableTab({ month, onAdd, onDelete }:{month:MonthBudget;onAdd:(e:Omit<VariableExpense,'id'>)=>void;onDelete:(id:string)=>void}) {
+   const [showAdd,setShowAdd]=useState(false)
+   const [expanded,setExpanded]=useState<string|null>(null)
+-  const grouped=VARIABLE_TYPES.map(type=>{
++  const grouped=displayVariableCats(month).map(type=>{
+     const items=month.variableExpenses.filter(e=>e.type===type)
+     const total=items.reduce((s,e)=>s+e.amount,0)
+-    return{type,items,total,base:month.variableCategoryBases[type]}
++    return{type,items,total,base:month.variableCategoryBases[type]??0}
+   }).filter(g=>g.items.length>0)
+   const grandTotal=month.variableExpenses.reduce((s,e)=>s+e.amount,0)
+   const recent=[...month.variableExpenses].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,10)
+@@ -499,16 +650,16 @@ function VariableTab({ month, onAdd, onDelete }:{month:MonthBudget;onAdd:(e:Omit
+             <div key={g.type}>
+               <button className="tap w-full" onClick={()=>setExpanded(expanded===g.type?null:g.type)}>
+                 <div style={{display:'flex',alignItems:'center',gap:12,padding:'10px 0'}}>
+-                  <IconBadge Icon={CAT_ICON[g.type]} color={CAT_COLOR[g.type]}/>
++                  <IconBadge Icon={catIcon(g.type)} color={categoryColor(month,g.type)}/>
+                   <div style={{flex:1,textAlign:'left'}}>
+                     <div style={{display:'flex',justifyContent:'space-between',alignItems:'baseline',marginBottom:5}}>
+                       <span style={{fontSize:13,fontWeight:600,color:'var(--t1)'}}>{g.type}</span>
+                       <div>
+-                        <span className="num" style={{fontSize:13,fontWeight:700,color:CAT_COLOR[g.type]}}>{fmt(g.total)}</span>
++                        <span className="num" style={{fontSize:13,fontWeight:700,color:categoryColor(month,g.type)}}>{fmt(g.total)}</span>
+                         <span style={{fontSize:11,color:'var(--t3)',marginLeft:3}}>/ {fmt(g.base)}</span>
+                       </div>
+                     </div>
+-                    <PBar value={pct(g.total,g.base)} color={CAT_COLOR[g.type]} h={4}/>
++                    <PBar value={pct(g.total,g.base)} color={categoryColor(month,g.type)} h={4}/>
+                   </div>
+                   <div style={{color:'var(--t3)',flexShrink:0}}>
+                     {expanded===g.type?<CaretDown size={14}/>:<CaretRight size={14}/>}
+@@ -523,7 +674,7 @@ function VariableTab({ month, onAdd, onDelete }:{month:MonthBudget;onAdd:(e:Omit
+                         <p style={{fontSize:13,fontWeight:600,color:'var(--t1)'}}>{item.name}</p>
+                         {item.date&&<p style={{fontSize:11,color:'var(--t3)'}}>{item.date}</p>}
+                       </div>
+-                      <span className="num" style={{fontSize:13,fontWeight:700,color:CAT_COLOR[g.type]}}>{fmt(item.amount)}</span>
++                      <span className="num" style={{fontSize:13,fontWeight:700,color:categoryColor(month,g.type)}}>{fmt(item.amount)}</span>
+                       <button className="tap" onClick={()=>onDelete(item.id)} style={{color:'var(--t3)',padding:4}}>
+                         <Trash size={13}/>
+                       </button>
+@@ -549,7 +700,7 @@ function VariableTab({ month, onAdd, onDelete }:{month:MonthBudget;onAdd:(e:Omit
+           <div style={{display:'flex',flexDirection:'column',gap:8}}>
+             {recent.map(item=>(
+               <div key={item.id} style={{display:'flex',alignItems:'center',gap:12}}>
+-                <IconBadge Icon={CAT_ICON[item.type]} color={CAT_COLOR[item.type]}/>
++                <IconBadge Icon={catIcon(item.type)} color={categoryColor(month,item.type)}/>
+                 <div style={{flex:1,minWidth:0}}>
+                   <p style={{fontSize:13,fontWeight:600,color:'var(--t1)',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{item.name}</p>
+                   <p style={{fontSize:11,color:'var(--t3)'}}>{item.type} · {item.date||'no date'}</p>
+@@ -563,7 +714,7 @@ function VariableTab({ month, onAdd, onDelete }:{month:MonthBudget;onAdd:(e:Omit
+           </div>
+         </div>
+       )}
+-      {showAdd&&<AddVarModal onClose={()=>setShowAdd(false)} onAdd={onAdd}/>}
++      {showAdd&&<AddVarModal month={month} onClose={()=>setShowAdd(false)} onAdd={onAdd}/>}
+     </div>
+   )
+ }
+@@ -587,7 +738,7 @@ function FixedTab({month,onAdd,onDelete}:{month:MonthBudget;onAdd:(e:Omit<FixedE
+           <PlusCircle size={15} weight="bold"/>Add
+         </button>
+       </div>
+-      {FIXED_TYPES.map(type=>{
++      {displayFixedCats(month).map(type=>{
+         const items=month.fixedExpenses.filter(e=>e.type===type)
+         if(!items.length)return null
+         const total=items.reduce((s,e)=>s+e.amount,0)
+@@ -595,13 +746,13 @@ function FixedTab({month,onAdd,onDelete}:{month:MonthBudget;onAdd:(e:Omit<FixedE
+         return(
+           <div key={type} className="glass" style={{padding:20}}>
+             <div style={{display:'flex',alignItems:'center',gap:12,marginBottom:14}}>
+-              <IconBadge Icon={CAT_ICON[type]} color={CAT_COLOR[type]}/>
++              <IconBadge Icon={catIcon(type)} color={categoryColor(month,type)}/>
+               <div style={{flex:1}}>
+                 <div style={{display:'flex',justifyContent:'space-between',alignItems:'baseline',marginBottom:5}}>
+                   <span style={{fontSize:13,fontWeight:700,color:'var(--t1)'}}>{type}</span>
+-                  <span className="num" style={{fontSize:13,fontWeight:700,color:CAT_COLOR[type]}}>{fmt(total)}<span style={{fontSize:11,color:'var(--t3)',fontWeight:400}}> / {fmt(base)}</span></span>
++                  <span className="num" style={{fontSize:13,fontWeight:700,color:categoryColor(month,type)}}>{fmt(total)}<span style={{fontSize:11,color:'var(--t3)',fontWeight:400}}> / {fmt(base)}</span></span>
+                 </div>
+-                <PBar value={pct(total,base)} color={CAT_COLOR[type]} h={5}/>
++                <PBar value={pct(total,base)} color={categoryColor(month,type)} h={5}/>
+               </div>
+             </div>
+             <div style={{display:'flex',flexDirection:'column',gap:6}}>
+@@ -612,7 +763,7 @@ function FixedTab({month,onAdd,onDelete}:{month:MonthBudget;onAdd:(e:Omit<FixedE
+                     {item.date&&<p style={{fontSize:11,color:'var(--t3)'}}>{item.date}</p>}
+                   </div>
+                   <div style={{textAlign:'right'}}>
+-                    <p className="num" style={{fontSize:13,fontWeight:700,color:CAT_COLOR[type]}}>{fmt(item.amount)}</p>
++                    <p className="num" style={{fontSize:13,fontWeight:700,color:categoryColor(month,type)}}>{fmt(item.amount)}</p>
+                     <p style={{fontSize:10,color:'var(--t3)'}}>budget {fmt(item.base)}</p>
+                   </div>
+                   <button className="tap" onClick={()=>onDelete(item.id)} style={{color:'var(--t3)',padding:4}}><Trash size={13}/></button>
+@@ -627,14 +778,15 @@ function FixedTab({month,onAdd,onDelete}:{month:MonthBudget;onAdd:(e:Omit<FixedE
+           <Receipt size={28} style={{margin:'0 auto 8px',opacity:.3}}/><p style={{fontSize:13}}>No fixed charges yet</p>
+         </div>
+       )}
+-      {showAdd&&<AddFixedModal onClose={()=>setShowAdd(false)} onAdd={onAdd}/>}
++      {showAdd&&<AddFixedModal month={month} onClose={()=>setShowAdd(false)} onAdd={onAdd}/>}
+     </div>
+   )
+ }
+ 
+ /* ══════════════════════ SAVINGS ══════════════════════ */
+-function SavingsTab({month,onAdd,onDelete,onToggle}:{month:MonthBudget;onAdd:(g:Omit<SavingGoal,'id'>)=>void;onDelete:(id:string)=>void;onToggle:(id:string)=>void}){
++function SavingsTab({month,onAdd,onDelete,onToggle,onTopUp}:{month:MonthBudget;onAdd:(g:Omit<SavingGoal,'id'>)=>void;onDelete:(id:string)=>void;onToggle:(id:string)=>void;onTopUp:(id:string,amount:number,place:MoneyPlace)=>void}){
+   const [showAdd,setShowAdd]=useState(false)
++  const [fundingGoal,setFundingGoal]=useState<SavingGoal|null>(null)
+   const active=month.savingGoals.filter(g=>g.active)
+   const inactive=month.savingGoals.filter(g=>!g.active)
+   const totalSaved=active.reduce((s,g)=>s+g.current,0)
+@@ -679,7 +831,10 @@ function SavingsTab({month,onAdd,onDelete,onToggle}:{month:MonthBudget;onAdd:(g:
+                       </div>
+                       <PBar value={p} color="var(--good)" h={6}/>
+                     </div>
+-                    <button className="tap" onClick={()=>onDelete(goal.id)} style={{color:'var(--t3)',padding:4,marginTop:2}}><Trash size={13}/></button>
++                    <div style={{display:'flex',flexDirection:'column',gap:6,marginTop:2}}>
++                      <button className="tap" onClick={()=>setFundingGoal(goal)} style={{color:'var(--accent)',padding:4}} title="Add funds"><ArrowCircleUp size={16} weight="bold"/></button>
++                      <button className="tap" onClick={()=>onDelete(goal.id)} style={{color:'var(--t3)',padding:4}}><Trash size={13}/></button>
++                    </div>
+                   </div>
+                 </div>
+               )
+@@ -714,7 +869,8 @@ function SavingsTab({month,onAdd,onDelete,onToggle}:{month:MonthBudget;onAdd:(g:
+           <PiggyBank size={28} style={{margin:'0 auto 8px',opacity:.3}}/><p style={{fontSize:13}}>No saving goals yet</p>
+         </div>
+       )}
+-      {showAdd&&<AddSavingModal onClose={()=>setShowAdd(false)} onAdd={onAdd}/>}
++      {showAdd&&<AddSavingModal month={month} onClose={()=>setShowAdd(false)} onAdd={onAdd}/>}
++      {fundingGoal&&<AddFundsModal month={month} goal={fundingGoal} onClose={()=>setFundingGoal(null)} onAdd={(amount,place)=>onTopUp(fundingGoal.id,amount,place)}/>}
+     </div>
+   )
+ }
+@@ -729,6 +885,7 @@ export default function Dashboard() {
+   const [monthId, setMonthId] = useState(currentMonthId())
+   const [tab, setTab] = useState<Tab>('overview')
+   const [showSettings, setShowSettings] = useState(false)
++  const [showCategories, setShowCategories] = useState(false)
+   const [saving, setSaving] = useState(false)
+   const [error, setError] = useState('')
+ 
+@@ -761,7 +918,7 @@ export default function Dashboard() {
+           setMonth(fresh)
+         }
+       },
+-      () => setError("Couldn't load your budget — check your connection or Firestore setup.")
++      () => setError("Couldn't load your budget - check your connection or Firestore setup.")
+     )
+     return () => unsub()
+   }, [user, profile, monthId])
+@@ -792,9 +949,20 @@ export default function Dashboard() {
+   const delVariable  = (id: string) => { if (month && confirmDelete('this expense')) persist({...month, variableExpenses:month.variableExpenses.filter(e=>e.id!==id)}) }
+   const addFixed     = (e: Omit<FixedExpense,'id'>)    => month && persist({...month, fixedExpenses:[...month.fixedExpenses,{...e,id:uid2()}]})
+   const delFixed     = (id: string) => { if (month && confirmDelete('this fixed charge')) persist({...month, fixedExpenses:month.fixedExpenses.filter(e=>e.id!==id)}) }
+-  const addSaving    = (g: Omit<SavingGoal,'id'>)      => month && persist({...month, savingGoals:[...month.savingGoals,{...g,id:uid2()}]})
++  // Funding a saving goal moves real money out of whichever money place it came from.
++  const addSaving = (g: Omit<SavingGoal,'id'>) => {
++    if (!month) return
++    const patch = g.current > 0 ? withMoneyPlaceDelta(month, SOURCE_TO_PLACE[g.source], -g.current) : {}
++    persist({ ...month, ...patch, savingGoals: [...month.savingGoals, { ...g, id: uid2() }] })
++  }
+   const delSaving    = (id: string) => { if (month && confirmDelete('this saving goal')) persist({...month, savingGoals:month.savingGoals.filter(g=>g.id!==id)}) }
+   const toggleSaving = (id: string) => month && persist({...month, savingGoals:month.savingGoals.map(g=>g.id===id?{...g,active:!g.active}:g)})
++  // Topping up an existing goal also moves money out of the chosen place.
++  const topUpSaving = (id: string, amount: number, place: MoneyPlace) => {
++    if (!month) return
++    const patch = withMoneyPlaceDelta(month, place, -amount)
++    persist({ ...month, ...patch, savingGoals: month.savingGoals.map(g => g.id===id ? {...g, current: g.current+amount, active: true} : g) })
++  }
+ 
+   async function handleSignOut() {
+     await signOut()
+@@ -830,66 +998,105 @@ export default function Dashboard() {
+   ]
+ 
+   return (
+-    <div className="min-h-screen flex flex-col max-w-md mx-auto" style={{background:'var(--bg)'}}>
+-      {/* Top bar */}
+-      <div className="safe-top sticky top-0 z-40" style={{background:'rgba(255,255,255,0.85)',backdropFilter:'blur(20px)',borderBottom:'1px solid var(--border)'}}>
+-        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'12px 20px'}}>
+-          <div style={{display:'flex',alignItems:'center',gap:8}}>
+-            <button className="tap" onClick={()=>setMonthId(prevMonth(monthId))}
+-              style={{width:32,height:32,borderRadius:10,background:'var(--surface-2)',border:'1px solid var(--border)',display:'flex',alignItems:'center',justifyContent:'center'}}>
+-              <CaretLeft size={15} color="var(--t2)"/>
+-            </button>
+-            <div style={{textAlign:'center'}}>
+-              <p style={{fontSize:11,fontWeight:700,color:'var(--t3)',textTransform:'uppercase',letterSpacing:'0.07em'}}>Budget</p>
+-              <h1 className="f-display" style={{fontSize:16,fontWeight:700,color:'var(--t1)',lineHeight:1.1}}>{month.label}</h1>
+-            </div>
+-            <button className="tap" onClick={()=>setMonthId(nextMonth(monthId))}
+-              style={{width:32,height:32,borderRadius:10,background:'var(--surface-2)',border:'1px solid var(--border)',display:'flex',alignItems:'center',justifyContent:'center'}}>
+-              <CaretRight size={15} color="var(--t2)"/>
+-            </button>
+-          </div>
+-
+-          <div style={{display:'flex',alignItems:'center',gap:8}}>
+-            {saving && <div className="w-2 h-2 rounded-full" style={{background:'var(--accent)'}}/>}
+-            <button onClick={()=>setShowSettings(true)} className="tap"
+-              style={{width:36,height:36,borderRadius:12,background:'var(--surface-2)',border:'1px solid var(--border)',display:'flex',alignItems:'center',justifyContent:'center'}}>
+-              <Gear size={16} color="var(--t2)"/>
+-            </button>
++    <div className="min-h-screen md:flex" style={{background:'var(--bg)'}}>
++      {/* Desktop sidebar nav - replaces the bottom tab bar on wider screens */}
++      <aside className="hidden md:flex md:flex-col md:w-64 md:shrink-0 md:sticky md:top-0 md:h-screen"
++        style={{borderRight:'1px solid var(--border)',background:'var(--surface)'}}>
++        <div style={{display:'flex',alignItems:'center',gap:10,padding:'22px 22px 18px'}}>
++          <div style={{width:34,height:34,borderRadius:10,background:'var(--accent)',display:'flex',alignItems:'center',justifyContent:'center'}}>
++            <Wallet size={17} weight="bold" color="var(--accent-ink)"/>
+           </div>
++          <span className="f-display" style={{fontSize:17,fontWeight:700,color:'var(--t1)'}}>Flousy</span>
+         </div>
+-      </div>
+-
+-      {/* Content */}
+-      <div className="flex-1 overflow-y-auto px-4 pt-4 pb-28">
+-        {error && <div className="banner banner-error fade-in" style={{marginBottom:16}}>{error}</div>}
+-        {tab==='overview' && <Overview month={month}/>}
+-        {tab==='variable' && <VariableTab month={month} onAdd={addVariable} onDelete={delVariable}/>}
+-        {tab==='fixed'    && <FixedTab month={month} onAdd={addFixed} onDelete={delFixed}/>}
+-        {tab==='savings'  && <SavingsTab month={month} onAdd={addSaving} onDelete={delSaving} onToggle={toggleSaving}/>}
+-      </div>
+-
+-      {/* Bottom nav */}
+-      <nav className="safe-bottom fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md z-40"
+-        style={{background:'rgba(255,255,255,0.92)',backdropFilter:'blur(24px)',borderTop:'1px solid var(--border)'}}>
+-        <div style={{display:'flex',padding:'4px 8px'}}>
++        <nav style={{display:'flex',flexDirection:'column',gap:2,padding:'0 12px'}}>
+           {tabs.map(t=>{
+             const active=tab===t.id
+             return(
+               <button key={t.id} onClick={()=>setTab(t.id)} className="tap"
+-                style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',
+-                  padding:'8px 4px',borderRadius:14,gap:4,
+-                  color:active?'var(--t1)':'var(--t3)',
+-                  background:active?'var(--accent-tint)':'transparent',
+-                  transition:'all 0.15s'}}>
+-                <t.Icon size={19} weight={active?'fill':'regular'}/>
+-                <span style={{fontSize:10,fontWeight:700,letterSpacing:'0.02em'}}>{t.label}</span>
++                style={{display:'flex',alignItems:'center',gap:10,padding:'10px 12px',borderRadius:12,
++                  color:active?'var(--t1)':'var(--t2)',background:active?'var(--accent-tint)':'transparent',fontWeight:700,fontSize:13,textAlign:'left'}}>
++                <t.Icon size={17} weight={active?'fill':'regular'}/>{t.label}
+               </button>
+             )
+           })}
++        </nav>
++        <div style={{flex:1}}/>
++        <div style={{padding:12,display:'flex',flexDirection:'column',gap:2}}>
++          <button onClick={()=>setShowSettings(true)} className="tap"
++            style={{display:'flex',alignItems:'center',gap:10,padding:'10px 12px',borderRadius:12,color:'var(--t2)',fontWeight:700,fontSize:13,textAlign:'left'}}>
++            <Gear size={17}/>Settings
++          </button>
++          <button onClick={handleSignOut} className="tap"
++            style={{display:'flex',alignItems:'center',gap:10,padding:'10px 12px',borderRadius:12,color:'var(--t2)',fontWeight:700,fontSize:13,textAlign:'left'}}>
++            <SignOut size={17}/>Sign out
++          </button>
++        </div>
++      </aside>
++
++      <div className="flex flex-col flex-1 min-w-0 max-w-md md:max-w-none mx-auto md:mx-0" style={{background:'var(--bg)'}}>
++        {/* Top bar */}
++        <div className="safe-top sticky top-0 z-40 md:static" style={{background:'rgba(255,255,255,0.85)',backdropFilter:'blur(20px)',borderBottom:'1px solid var(--border)'}}>
++          <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'12px 20px'}} className="md:px-8 md:py-4">
++            <div style={{display:'flex',alignItems:'center',gap:8}}>
++              <button className="tap" onClick={()=>setMonthId(prevMonth(monthId))}
++                style={{width:32,height:32,borderRadius:10,background:'var(--surface-2)',border:'1px solid var(--border)',display:'flex',alignItems:'center',justifyContent:'center'}}>
++                <CaretLeft size={15} color="var(--t2)"/>
++              </button>
++              <div style={{textAlign:'center'}}>
++                <p style={{fontSize:11,fontWeight:700,color:'var(--t3)',textTransform:'uppercase',letterSpacing:'0.07em'}}>Budget</p>
++                <h1 className="f-display" style={{fontSize:16,fontWeight:700,color:'var(--t1)',lineHeight:1.1}}>{month.label}</h1>
++              </div>
++              <button className="tap" onClick={()=>setMonthId(nextMonth(monthId))}
++                style={{width:32,height:32,borderRadius:10,background:'var(--surface-2)',border:'1px solid var(--border)',display:'flex',alignItems:'center',justifyContent:'center'}}>
++                <CaretRight size={15} color="var(--t2)"/>
++              </button>
++            </div>
++
++            <div style={{display:'flex',alignItems:'center',gap:8}}>
++              {saving && <div className="w-2 h-2 rounded-full" style={{background:'var(--accent)'}}/>}
++              <button onClick={()=>setShowSettings(true)} className="tap md:hidden"
++                style={{width:36,height:36,borderRadius:12,background:'var(--surface-2)',border:'1px solid var(--border)',display:'flex',alignItems:'center',justifyContent:'center'}}>
++                <Gear size={16} color="var(--t2)"/>
++              </button>
++            </div>
++          </div>
+         </div>
+-      </nav>
+ 
+-      {showSettings&&<SettingsModal month={month} user={user} onClose={()=>setShowSettings(false)} onSave={p=>updateMonth(p)} onSignOut={handleSignOut}/>}
++        {/* Content */}
++        <div className="flex-1 overflow-y-auto px-4 pt-4 pb-28 md:px-8 md:pt-6 md:pb-10">
++          <div className="md:max-w-5xl md:mx-auto">
++            {error && <div className="banner banner-error fade-in" style={{marginBottom:16}}>{error}</div>}
++            {tab==='overview' && <Overview month={month}/>}
++            {tab==='variable' && <VariableTab month={month} onAdd={addVariable} onDelete={delVariable}/>}
++            {tab==='fixed'    && <FixedTab month={month} onAdd={addFixed} onDelete={delFixed}/>}
++            {tab==='savings'  && <SavingsTab month={month} onAdd={addSaving} onDelete={delSaving} onToggle={toggleSaving} onTopUp={topUpSaving}/>}
++          </div>
++        </div>
++
++        {/* Bottom nav - mobile only; desktop uses the sidebar instead */}
++        <nav className="safe-bottom fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md z-40 md:hidden"
++          style={{background:'rgba(255,255,255,0.92)',backdropFilter:'blur(24px)',borderTop:'1px solid var(--border)'}}>
++          <div style={{display:'flex',padding:'4px 8px'}}>
++            {tabs.map(t=>{
++              const active=tab===t.id
++              return(
++                <button key={t.id} onClick={()=>setTab(t.id)} className="tap"
++                  style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',
++                    padding:'8px 4px',borderRadius:14,gap:4,
++                    color:active?'var(--t1)':'var(--t3)',
++                    background:active?'var(--accent-tint)':'transparent',
++                    transition:'all 0.15s'}}>
++                  <t.Icon size={19} weight={active?'fill':'regular'}/>
++                  <span style={{fontSize:10,fontWeight:700,letterSpacing:'0.02em'}}>{t.label}</span>
++                </button>
++              )
++            })}
++          </div>
++        </nav>
++      </div>
++
++      {showSettings&&<SettingsModal month={month} user={user} onClose={()=>setShowSettings(false)} onSave={p=>updateMonth(p)} onSignOut={handleSignOut} onManageCategories={()=>{setShowSettings(false);setShowCategories(true)}}/>}
++      {showCategories&&<ManageCategoriesModal month={month} onClose={()=>setShowCategories(false)} onSave={p=>updateMonth(p)}/>}
+     </div>
+   )
+ }
+diff --git a/src/app/onboarding/page.tsx b/src/app/onboarding/page.tsx
+index f63ba71..984b188 100644
+--- a/src/app/onboarding/page.tsx
++++ b/src/app/onboarding/page.tsx
+@@ -73,7 +73,8 @@ export default function OnboardingPage() {
+ 
+   const strategy = MANAGEMENT_STRATEGIES.find(s => s.id === strategyId) ?? MANAGEMENT_STRATEGIES[0]
+   const homePart = Math.round(incomeNum * strategy.homeShare)
+-  const walletPart = Math.max(0, incomeNum - homePart)
++  const bankPart = Math.round(incomeNum * strategy.bankShare)
++  const walletPart = Math.max(0, incomeNum - homePart - bankPart)
+ 
+   return (
+     <div className="min-h-screen flex flex-col items-center justify-center px-5 py-10">
+@@ -193,7 +194,11 @@ export default function OnboardingPage() {
+                 <p style={{ fontSize: 11, color: 'var(--t3)', fontWeight: 700 }}>MONTHLY INCOME</p>
+                 <p className="f-display" style={{ fontSize: 22, fontWeight: 700, color: 'var(--t1)' }}>{incomeNum.toLocaleString('fr-MA')} MAD</p>
+               </div>
+-              <div className="glass-2" style={{ padding: 14, display: 'flex', gap: 16 }}>
++              <div className="glass-2" style={{ padding: 14, display: 'flex', gap: 12 }}>
++                <div style={{ flex: 1 }}>
++                  <p style={{ fontSize: 11, color: 'var(--t3)', fontWeight: 700 }}>BANK</p>
++                  <p style={{ fontSize: 15, fontWeight: 700, color: 'var(--t1)' }}>{bankPart.toLocaleString('fr-MA')} MAD</p>
++                </div>
+                 <div style={{ flex: 1 }}>
+                   <p style={{ fontSize: 11, color: 'var(--t3)', fontWeight: 700 }}>HOME</p>
+                   <p style={{ fontSize: 15, fontWeight: 700, color: 'var(--t1)' }}>{homePart.toLocaleString('fr-MA')} MAD</p>
+diff --git a/src/lib/category-icons.tsx b/src/lib/category-icons.tsx
+index 29dca39..ae317ac 100644
+--- a/src/lib/category-icons.tsx
++++ b/src/lib/category-icons.tsx
+@@ -25,3 +25,7 @@ export const CAT_ICON: Record<string, Icon> = {
+   Téléphone: Phone,
+   AI: Robot,
+ }
++
++// Used for any custom category the user creates via "Manage categories"
++// that doesn't have an icon of its own.
++export const CAT_ICON_FALLBACK: Icon = Package
+diff --git a/src/lib/store.ts b/src/lib/store.ts
+index 77a53a8..2c93b34 100644
+--- a/src/lib/store.ts
++++ b/src/lib/store.ts
+@@ -1,10 +1,10 @@
+ 'use client'
+ 
+-export type ExpenseType =
+-  | 'Alimentation' | 'Gazoil' | 'Restaurant' | 'Sortie'
+-  | 'Beauté' | 'Famille' | 'Queen' | 'King' | 'Shopping' | 'Autre'
+-
+-export type FixedType = 'Facture' | 'Location' | 'Internet' | 'Téléphone' | 'AI' | 'Autre'
++// Category types are open strings so users can add their own custom
++// categories via "Manage categories" - the literal lists below (VARIABLE_TYPES /
++// FIXED_TYPES) are just the built-in defaults every account starts with.
++export type ExpenseType = string
++export type FixedType = string
+ 
+ export interface VariableExpense {
+   id: string; name: string; amount: number; type: ExpenseType; date: string; person?: string
+@@ -12,18 +12,37 @@ export interface VariableExpense {
+ export interface FixedExpense {
+   id: string; name: string; amount: number; type: FixedType; base: number; date?: string
+ }
++
++/* ── Money places: every dirham lives in one of three places ── */
++export type MoneyPlace = 'bank' | 'home' | 'wallet'
++export const MONEY_PLACES: MoneyPlace[] = ['bank', 'home', 'wallet']
++export const MONEY_PLACE_LABEL: Record<MoneyPlace, string> = { bank: 'Bank', home: 'Home', wallet: 'Wallet' }
++export const MONEY_PLACE_FIELD: Record<MoneyPlace, 'bankPart' | 'homePart' | 'walletPart'> = {
++  bank: 'bankPart', home: 'homePart', wallet: 'walletPart',
++}
++
++export const SAVING_SOURCES = ['BANK', 'HOME', 'WALLET'] as const
++export type SavingSource = typeof SAVING_SOURCES[number]
++export const SOURCE_TO_PLACE: Record<SavingSource, MoneyPlace> = { BANK: 'bank', HOME: 'home', WALLET: 'wallet' }
++
+ export interface SavingGoal {
+   id: string; name: string; target: number; current: number
+-  source: 'HOME' | 'BANK SAVING' | 'WALLET'; active: boolean
++  source: SavingSource; active: boolean
+ }
+ export interface MonthBudget {
+   id: string; month: string; label: string
+-  totalBudget: number; homePart: number; walletPart: number
++  totalBudget: number; homePart: number; walletPart: number; bankPart: number
+   variableExpenses: VariableExpense[]
+   fixedExpenses: FixedExpense[]
+   savingGoals: SavingGoal[]
+-  variableCategoryBases: Record<ExpenseType, number>
+-  fixedCategoryBases: Record<FixedType, number>
++  variableCategoryBases: Record<string, number>
++  fixedCategoryBases: Record<string, number>
++  // Which categories show up in "Add expense" / "Add fixed" / budget editors.
++  // Defaults to every built-in category - hide ones you don't use via
++  // "Manage categories". Custom categories a user creates are added here too.
++  activeVariableCategories: string[]
++  activeFixedCategories: string[]
++  categoryColors: Record<string, string>
+   updatedAt?: unknown
+ }
+ 
+@@ -32,6 +51,17 @@ function monthLabel(id: string) {
+   return new Date(parseInt(y), parseInt(m) - 1, 1).toLocaleString('en-US', { month: 'long', year: 'numeric' })
+ }
+ 
++export function moneyPlaceAmount(month: MonthBudget, place: MoneyPlace): number {
++  return month[MONEY_PLACE_FIELD[place]]
++}
++
++// Moves `delta` (positive = add, negative = remove) into/out of a money
++// place. Used whenever cash physically moves - e.g. funding a saving goal.
++export function withMoneyPlaceDelta(month: MonthBudget, place: MoneyPlace, delta: number): Partial<MonthBudget> {
++  const field = MONEY_PLACE_FIELD[place]
++  return { [field]: Math.max(0, month[field] + delta) } as Partial<MonthBudget>
++}
++
+ // A brand-new, empty month - no sample/placeholder numbers. Used only as a
+ // last-resort fallback (e.g. onboarding was skipped somehow). Real new
+ // accounts go through /onboarding, and returning users get rolloverMonth().
+@@ -40,15 +70,13 @@ export function emptyMonth(monthId?: string): MonthBudget {
+   const id  = monthId ?? `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
+   return {
+     id, month: id, label: monthLabel(id),
+-    totalBudget: 0, homePart: 0, walletPart: 0,
++    totalBudget: 0, homePart: 0, walletPart: 0, bankPart: 0,
+     variableExpenses: [], fixedExpenses: [], savingGoals: [],
+-    variableCategoryBases: {
+-      Alimentation: 0, Gazoil: 0, Restaurant: 0, Sortie: 0,
+-      Beauté: 0, Famille: 0, Queen: 0, King: 0, Shopping: 0, Autre: 0,
+-    },
+-    fixedCategoryBases: {
+-      Facture: 0, Location: 0, Internet: 0, Téléphone: 0, AI: 0, Autre: 0,
+-    },
++    variableCategoryBases: Object.fromEntries(VARIABLE_TYPES.map(t => [t, 0])),
++    fixedCategoryBases: Object.fromEntries(FIXED_TYPES.map(t => [t, 0])),
++    activeVariableCategories: [...VARIABLE_TYPES],
++    activeFixedCategories: [...FIXED_TYPES],
++    categoryColors: {},
+   }
+ }
+ 
+@@ -58,11 +86,14 @@ export function emptyMonth(monthId?: string): MonthBudget {
+ export function rolloverMonth(monthId: string, prev: MonthBudget): MonthBudget {
+   return {
+     id: monthId, month: monthId, label: monthLabel(monthId),
+-    totalBudget: prev.totalBudget, homePart: prev.homePart, walletPart: prev.walletPart,
++    totalBudget: prev.totalBudget, homePart: prev.homePart, walletPart: prev.walletPart, bankPart: prev.bankPart ?? 0,
+     variableExpenses: [], fixedExpenses: [],
+     savingGoals: prev.savingGoals.map(g => ({ ...g })),
+     variableCategoryBases: { ...prev.variableCategoryBases },
+     fixedCategoryBases: { ...prev.fixedCategoryBases },
++    activeVariableCategories: prev.activeVariableCategories ? [...prev.activeVariableCategories] : [...VARIABLE_TYPES],
++    activeFixedCategories: prev.activeFixedCategories ? [...prev.activeFixedCategories] : [...FIXED_TYPES],
++    categoryColors: { ...(prev.categoryColors || {}) },
+   }
+ }
+ 
+@@ -71,6 +102,30 @@ export const VARIABLE_TYPES: ExpenseType[] = [
+ ]
+ export const FIXED_TYPES: FixedType[] = ['Facture','Location','Internet','Téléphone','AI','Autre']
+ 
++// The categories to actually display for a month: its active list, plus any
++// category that already has real transactions logged (so hiding a category
++// later never hides your own past spending).
++export function displayVariableCats(month: MonthBudget): string[] {
++  const base = month.activeVariableCategories?.length ? month.activeVariableCategories : VARIABLE_TYPES
++  return Array.from(new Set([...base, ...month.variableExpenses.map(e => e.type)]))
++}
++export function displayFixedCats(month: MonthBudget): string[] {
++  const base = month.activeFixedCategories?.length ? month.activeFixedCategories : FIXED_TYPES
++  return Array.from(new Set([...base, ...month.fixedExpenses.map(e => e.type)]))
++}
++
++/* ── Custom category colors ── */
++export const CUSTOM_CATEGORY_PALETTE = [
++  '#D6A75C', '#7B9E8E', '#C9695A', '#8FA37E', '#B9925A', '#5FA97A', '#C98A8F', '#8A8175',
++]
++export function categoryColor(month: MonthBudget, type: string): string {
++  return month.categoryColors?.[type] ?? CAT_COLOR[type] ?? '#8A8175'
++}
++export function nextPaletteColor(month: MonthBudget): string {
++  const used = Object.keys(month.categoryColors || {}).length
++  return CUSTOM_CATEGORY_PALETTE[used % CUSTOM_CATEGORY_PALETTE.length]
++}
++
+ /* ── Onboarding: suggested categories & budgeting strategies ── */
+ export interface CategorySuggestion<T> { type: T; hint: string; sharePct: number; recommended: boolean }
+ 
+@@ -98,7 +153,8 @@ export const SUGGESTED_FIXED_CATEGORIES: CategorySuggestion<FixedType>[] = [
+ 
+ export interface ManagementStrategy {
+   id: string; name: string; tagline: string; description: string
+-  homeShare: number // fraction of income kept as physical/home cash vs. wallet/card
++  // fractions of income kept in each money place - the rest (1 - home - bank) goes to wallet
++  homeShare: number; bankShare: number
+   recommended?: boolean
+ }
+ 
+@@ -107,25 +163,25 @@ export const MANAGEMENT_STRATEGIES: ManagementStrategy[] = [
+     id: '50-30-20', name: '50/30/20 Rule', recommended: true,
+     tagline: 'Recommended - balanced & beginner-friendly',
+     description: '50% needs, 30% wants, 20% savings. The most tested general-purpose method.',
+-    homeShare: 0.5,
++    homeShare: 0.3, bankShare: 0.2,
+   },
+   {
+     id: 'zero-based', name: 'Zero-Based Budgeting',
+     tagline: 'Best for tight control',
+     description: 'Give every dirham a job so nothing is left unaccounted for at month\u2019s end.',
+-    homeShare: 0.4,
++    homeShare: 0.35, bankShare: 0.1,
+   },
+   {
+     id: 'envelope', name: 'Envelope System',
+     tagline: 'Best for cash spenders',
+     description: 'Keep separate cash "envelopes" per category by moving more of your budget home.',
+-    homeShare: 0.65,
++    homeShare: 0.55, bankShare: 0.05,
+   },
+   {
+     id: 'pay-yourself-first', name: 'Pay Yourself First',
+     tagline: 'Best for saving goals',
+-    description: 'Set savings aside the moment you\u2019re paid, then live on what remains.',
+-    homeShare: 0.35,
++    description: 'Set money aside in the bank the moment you\u2019re paid, then live on what remains.',
++    homeShare: 0.25, bankShare: 0.3,
+   },
+ ]
+ 
+@@ -138,21 +194,22 @@ export interface OnboardingResult {
+ 
+ // Builds a real first month straight from the onboarding answers - actual
+ // income, chosen categories with suggested budgets, and the chosen
+-// management strategy's home/wallet split. No placeholder transactions.
++// management strategy's bank/home/wallet split. No placeholder transactions.
++// Every built-in category stays visible in Add-expense/Add-fixed regardless
++// of what was picked here - the picks only seed suggested budgets.
+ export function buildMonthFromOnboarding(monthId: string, r: OnboardingResult): MonthBudget {
+   const strategy   = MANAGEMENT_STRATEGIES.find(s => s.id === r.strategyId) ?? MANAGEMENT_STRATEGIES[0]
+   const homePart   = Math.round(r.income * strategy.homeShare)
+-  const walletPart = Math.max(0, r.income - homePart)
++  const bankPart   = Math.round(r.income * strategy.bankShare)
++  const walletPart = Math.max(0, r.income - homePart - bankPart)
+ 
+-  const variableCategoryBases = {} as Record<ExpenseType, number>
+-  VARIABLE_TYPES.forEach(t => { variableCategoryBases[t] = 0 })
++  const variableCategoryBases = Object.fromEntries(VARIABLE_TYPES.map(t => [t, 0])) as Record<string, number>
+   r.variableCategories.forEach(t => {
+     const s = SUGGESTED_VARIABLE_CATEGORIES.find(c => c.type === t)
+     variableCategoryBases[t] = s ? Math.round(r.income * (s.sharePct / 100)) : 0
+   })
+ 
+-  const fixedCategoryBases = {} as Record<FixedType, number>
+-  FIXED_TYPES.forEach(t => { fixedCategoryBases[t] = 0 })
++  const fixedCategoryBases = Object.fromEntries(FIXED_TYPES.map(t => [t, 0])) as Record<string, number>
+   r.fixedCategories.forEach(t => {
+     const s = SUGGESTED_FIXED_CATEGORIES.find(c => c.type === t)
+     fixedCategoryBases[t] = s ? Math.round(r.income * (s.sharePct / 100)) : 0
+@@ -160,13 +217,16 @@ export function buildMonthFromOnboarding(monthId: string, r: OnboardingResult):
+ 
+   return {
+     id: monthId, month: monthId, label: monthLabel(monthId),
+-    totalBudget: r.income, homePart, walletPart,
++    totalBudget: r.income, homePart, walletPart, bankPart,
+     variableExpenses: [], fixedExpenses: [], savingGoals: [],
+     variableCategoryBases, fixedCategoryBases,
++    activeVariableCategories: [...VARIABLE_TYPES],
++    activeFixedCategories: [...FIXED_TYPES],
++    categoryColors: {},
+   }
+ }
+ 
+-// Harmonised, desaturated palette — single accent family (warm tan/gold)
++// Harmonised, desaturated palette - single accent family (warm tan/gold)
+ // plus muted semantic hues. No purple, no neon, saturation kept under 80%.
+ export const CAT_COLOR: Record<string, string> = {
+   Alimentation: '#D6A75C', Gazoil: '#7B9E8E', Restaurant: '#C9695A',

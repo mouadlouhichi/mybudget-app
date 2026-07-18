@@ -25,3 +25,7 @@ export const CAT_ICON: Record<string, Icon> = {
   Téléphone: Phone,
   AI: Robot,
 }
+
+// Used for any custom category the user creates via "Manage categories"
+// that doesn't have an icon of its own.
+export const CAT_ICON_FALLBACK: Icon = Package
