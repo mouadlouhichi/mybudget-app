@@ -29,12 +29,20 @@ export interface SavingGoal {
   id: string; name: string; target: number; current: number
   source: SavingSource; active: boolean
 }
+
+// Saving goals are global (per user, not per month) - see db.ts savingsDocRef.
+// Money you set aside stays saved when the calendar month rolls over.
+export interface SavingsData { goals: SavingGoal[] }
+export function emptySavings(): SavingsData { return { goals: [] } }
+
 export interface MonthBudget {
   id: string; month: string; label: string
   totalBudget: number; homePart: number; walletPart: number; bankPart: number
   variableExpenses: VariableExpense[]
   fixedExpenses: FixedExpense[]
-  savingGoals: SavingGoal[]
+  // Legacy field from before saving goals became global - no longer written,
+  // kept optional only so old month docs can be migrated once on first load.
+  savingGoals?: SavingGoal[]
   variableCategoryBases: Record<string, number>
   fixedCategoryBases: Record<string, number>
   // Which categories show up in "Add expense" / "Add fixed" / budget editors.
@@ -69,7 +77,6 @@ export function normalizeMonth(m: MonthBudget): MonthBudget {
     bankPart: m.bankPart ?? 0,
     variableExpenses: m.variableExpenses ?? [],
     fixedExpenses: m.fixedExpenses ?? [],
-    savingGoals: m.savingGoals ?? [],
     variableCategoryBases: m.variableCategoryBases ?? {},
     fixedCategoryBases: m.fixedCategoryBases ?? {},
     activeVariableCategories: m.activeVariableCategories?.length ? m.activeVariableCategories : [...VARIABLE_TYPES],
@@ -94,7 +101,7 @@ export function emptyMonth(monthId?: string): MonthBudget {
   return {
     id, month: id, label: monthLabel(id),
     totalBudget: 0, homePart: 0, walletPart: 0, bankPart: 0,
-    variableExpenses: [], fixedExpenses: [], savingGoals: [],
+    variableExpenses: [], fixedExpenses: [],
     variableCategoryBases: Object.fromEntries(VARIABLE_TYPES.map(t => [t, 0])),
     fixedCategoryBases: Object.fromEntries(FIXED_TYPES.map(t => [t, 0])),
     activeVariableCategories: [...VARIABLE_TYPES],
@@ -103,15 +110,15 @@ export function emptyMonth(monthId?: string): MonthBudget {
   }
 }
 
-// Carries a returning user's budget plan (income split + category limits +
-// ongoing saving goals) into a new calendar month, with a clean slate of
-// actual transactions for that month.
+// Carries a returning user's budget plan (income split + category limits)
+// into a new calendar month, with a clean slate of actual transactions for
+// that month. Saving goals aren't part of this - they're global, see
+// SavingsData / db.ts savingsDocRef.
 export function rolloverMonth(monthId: string, prev: MonthBudget): MonthBudget {
   return {
     id: monthId, month: monthId, label: monthLabel(monthId),
     totalBudget: prev.totalBudget, homePart: prev.homePart, walletPart: prev.walletPart, bankPart: prev.bankPart ?? 0,
     variableExpenses: [], fixedExpenses: [],
-    savingGoals: prev.savingGoals.map(g => ({ ...g })),
     variableCategoryBases: { ...prev.variableCategoryBases },
     fixedCategoryBases: { ...prev.fixedCategoryBases },
     activeVariableCategories: prev.activeVariableCategories ? [...prev.activeVariableCategories] : [...VARIABLE_TYPES],
@@ -241,7 +248,7 @@ export function buildMonthFromOnboarding(monthId: string, r: OnboardingResult): 
   return {
     id: monthId, month: monthId, label: monthLabel(monthId),
     totalBudget: r.income, homePart, walletPart, bankPart,
-    variableExpenses: [], fixedExpenses: [], savingGoals: [],
+    variableExpenses: [], fixedExpenses: [],
     variableCategoryBases, fixedCategoryBases,
     activeVariableCategories: [...VARIABLE_TYPES],
     activeFixedCategories: [...FIXED_TYPES],

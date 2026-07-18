@@ -7,8 +7,8 @@ import {
   Timestamp, orderBy, limit, getDocs,
 } from 'firebase/firestore'
 import { db } from './firebase'
-import type { MonthBudget, VariableExpense, FixedExpense, SavingGoal } from './store'
-import { normalizeMonth } from './store'
+import type { MonthBudget, VariableExpense, FixedExpense, SavingGoal, SavingsData } from './store'
+import { normalizeMonth, emptySavings } from './store'
 
 // ── User profile ──────────────────────────────────────────────────────────────
 export interface UserProfile {
@@ -75,4 +75,38 @@ export async function listMonths(uid: string): Promise<MonthBudget[]> {
   const q = query(col, orderBy('month', 'desc'), limit(24))
   const snap = await getDocs(q)
   return snap.docs.map(d => normalizeMonth(d.data() as MonthBudget))
+}
+
+// ── Saving goals ──────────────────────────────────────────────────────────────
+// Saving goals live at the user level, not inside a month document - the
+// money you set aside in April is still saved in May. Months only ever
+// affect a goal's balance by moving money into/out of it; they never own
+// the goal itself, so nothing resets or gets duplicated when a new month
+// rolls over.
+export function savingsDocRef(uid: string) {
+  return doc(db, 'users', uid, 'data', 'savings')
+}
+
+export async function getSavings(uid: string): Promise<SavingsData | null> {
+  const snap = await getDoc(savingsDocRef(uid))
+  return snap.exists() ? (snap.data() as SavingsData) : null
+}
+
+export async function saveSavings(uid: string, data: SavingsData) {
+  await setDoc(savingsDocRef(uid), { ...data, updatedAt: serverTimestamp() })
+}
+
+export function subscribeSavings(
+  uid: string,
+  cb: (s: SavingsData) => void,
+  onError?: (err: Error) => void
+) {
+  return onSnapshot(
+    savingsDocRef(uid),
+    snap => cb(snap.exists() ? (snap.data() as SavingsData) : emptySavings()),
+    err => {
+      console.error('subscribeSavings error', err)
+      onError?.(err as unknown as Error)
+    }
+  )
 }
