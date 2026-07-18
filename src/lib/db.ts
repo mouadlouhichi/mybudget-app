@@ -8,6 +8,7 @@ import {
 } from 'firebase/firestore'
 import { db } from './firebase'
 import type { MonthBudget, VariableExpense, FixedExpense, SavingGoal } from './store'
+import { normalizeMonth } from './store'
 
 // ── User profile ──────────────────────────────────────────────────────────────
 export interface UserProfile {
@@ -43,7 +44,7 @@ export function monthDocRef(uid: string, monthId: string) {
 
 export async function getMonth(uid: string, monthId: string): Promise<MonthBudget | null> {
   const snap = await getDoc(monthDocRef(uid, monthId))
-  return snap.exists() ? (snap.data() as MonthBudget) : null
+  return snap.exists() ? normalizeMonth(snap.data() as MonthBudget) : null
 }
 
 export async function saveMonth(uid: string, month: MonthBudget) {
@@ -61,7 +62,7 @@ export function subscribeMonth(
 ) {
   return onSnapshot(
     monthDocRef(uid, monthId),
-    snap => cb(snap.exists() ? (snap.data() as MonthBudget) : null),
+    snap => cb(snap.exists() ? normalizeMonth(snap.data() as MonthBudget) : null),
     err => {
       console.error('subscribeMonth error', err)
       onError?.(err as unknown as Error)
@@ -73,5 +74,5 @@ export async function listMonths(uid: string): Promise<MonthBudget[]> {
   const col = collection(db, 'users', uid, 'months')
   const q = query(col, orderBy('month', 'desc'), limit(24))
   const snap = await getDocs(q)
-  return snap.docs.map(d => d.data() as MonthBudget)
+  return snap.docs.map(d => normalizeMonth(d.data() as MonthBudget))
 }

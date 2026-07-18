@@ -55,6 +55,29 @@ export function moneyPlaceAmount(month: MonthBudget, place: MoneyPlace): number 
   return month[MONEY_PLACE_FIELD[place]]
 }
 
+// Firestore documents saved before bank/home/wallet + custom categories
+// existed won't have these fields - reading them straight would leave
+// bankPart etc. as `undefined` and crash the first .toLocaleString() call.
+// Every read path in db.ts runs a month through this before handing it to
+// the UI.
+export function normalizeMonth(m: MonthBudget): MonthBudget {
+  return {
+    ...m,
+    totalBudget: m.totalBudget ?? 0,
+    homePart: m.homePart ?? 0,
+    walletPart: m.walletPart ?? 0,
+    bankPart: m.bankPart ?? 0,
+    variableExpenses: m.variableExpenses ?? [],
+    fixedExpenses: m.fixedExpenses ?? [],
+    savingGoals: m.savingGoals ?? [],
+    variableCategoryBases: m.variableCategoryBases ?? {},
+    fixedCategoryBases: m.fixedCategoryBases ?? {},
+    activeVariableCategories: m.activeVariableCategories?.length ? m.activeVariableCategories : [...VARIABLE_TYPES],
+    activeFixedCategories: m.activeFixedCategories?.length ? m.activeFixedCategories : [...FIXED_TYPES],
+    categoryColors: m.categoryColors ?? {},
+  }
+}
+
 // Moves `delta` (positive = add, negative = remove) into/out of a money
 // place. Used whenever cash physically moves - e.g. funding a saving goal.
 export function withMoneyPlaceDelta(month: MonthBudget, place: MoneyPlace, delta: number): Partial<MonthBudget> {

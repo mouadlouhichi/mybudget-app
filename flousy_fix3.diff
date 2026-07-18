@@ -1,0 +1,84 @@
+diff --git a/src/app/layout.tsx b/src/app/layout.tsx
+index ad8026e..8043a47 100644
+--- a/src/app/layout.tsx
++++ b/src/app/layout.tsx
+@@ -17,7 +17,7 @@ export default function RootLayout({ children }: { children: React.ReactNode })
+     <html lang="en">
+       <head>
+         <link rel="apple-touch-icon" href="/icon-192.png" />
+-        <meta name="apple-mobile-web-app-capable" content="yes" />
++        <meta name="mobile-web-app-capable" content="yes" />
+       </head>
+       <body>
+         <AuthProvider>{children}</AuthProvider>
+diff --git a/src/lib/db.ts b/src/lib/db.ts
+index 206aac1..869ccd7 100644
+--- a/src/lib/db.ts
++++ b/src/lib/db.ts
+@@ -8,6 +8,7 @@ import {
+ } from 'firebase/firestore'
+ import { db } from './firebase'
+ import type { MonthBudget, VariableExpense, FixedExpense, SavingGoal } from './store'
++import { normalizeMonth } from './store'
+ 
+ // ── User profile ──────────────────────────────────────────────────────────────
+ export interface UserProfile {
+@@ -43,7 +44,7 @@ export function monthDocRef(uid: string, monthId: string) {
+ 
+ export async function getMonth(uid: string, monthId: string): Promise<MonthBudget | null> {
+   const snap = await getDoc(monthDocRef(uid, monthId))
+-  return snap.exists() ? (snap.data() as MonthBudget) : null
++  return snap.exists() ? normalizeMonth(snap.data() as MonthBudget) : null
+ }
+ 
+ export async function saveMonth(uid: string, month: MonthBudget) {
+@@ -61,7 +62,7 @@ export function subscribeMonth(
+ ) {
+   return onSnapshot(
+     monthDocRef(uid, monthId),
+-    snap => cb(snap.exists() ? (snap.data() as MonthBudget) : null),
++    snap => cb(snap.exists() ? normalizeMonth(snap.data() as MonthBudget) : null),
+     err => {
+       console.error('subscribeMonth error', err)
+       onError?.(err as unknown as Error)
+@@ -73,5 +74,5 @@ export async function listMonths(uid: string): Promise<MonthBudget[]> {
+   const col = collection(db, 'users', uid, 'months')
+   const q = query(col, orderBy('month', 'desc'), limit(24))
+   const snap = await getDocs(q)
+-  return snap.docs.map(d => d.data() as MonthBudget)
++  return snap.docs.map(d => normalizeMonth(d.data() as MonthBudget))
+ }
+diff --git a/src/lib/store.ts b/src/lib/store.ts
+index 2c93b34..54ac3aa 100644
+--- a/src/lib/store.ts
++++ b/src/lib/store.ts
+@@ -55,6 +55,29 @@ export function moneyPlaceAmount(month: MonthBudget, place: MoneyPlace): number
+   return month[MONEY_PLACE_FIELD[place]]
+ }
+ 
++// Firestore documents saved before bank/home/wallet + custom categories
++// existed won't have these fields - reading them straight would leave
++// bankPart etc. as `undefined` and crash the first .toLocaleString() call.
++// Every read path in db.ts runs a month through this before handing it to
++// the UI.
++export function normalizeMonth(m: MonthBudget): MonthBudget {
++  return {
++    ...m,
++    totalBudget: m.totalBudget ?? 0,
++    homePart: m.homePart ?? 0,
++    walletPart: m.walletPart ?? 0,
++    bankPart: m.bankPart ?? 0,
++    variableExpenses: m.variableExpenses ?? [],
++    fixedExpenses: m.fixedExpenses ?? [],
++    savingGoals: m.savingGoals ?? [],
++    variableCategoryBases: m.variableCategoryBases ?? {},
++    fixedCategoryBases: m.fixedCategoryBases ?? {},
++    activeVariableCategories: m.activeVariableCategories?.length ? m.activeVariableCategories : [...VARIABLE_TYPES],
++    activeFixedCategories: m.activeFixedCategories?.length ? m.activeFixedCategories : [...FIXED_TYPES],
++    categoryColors: m.categoryColors ?? {},
++  }
++}
++
+ // Moves `delta` (positive = add, negative = remove) into/out of a money
+ // place. Used whenever cash physically moves - e.g. funding a saving goal.
+ export function withMoneyPlaceDelta(month: MonthBudget, place: MoneyPlace, delta: number): Partial<MonthBudget> {
