@@ -56,8 +56,10 @@ function IconBadge({ Icon: Ico, color, size = 40 }: { Icon: Icon; color: string;
 }
 
 /* ── Chip ── */
-function Chip({ label, color = 'var(--accent)' }: { label: string; color?: string }) {
-  return <span style={{ display:'inline-flex', alignItems:'center', padding:'3px 10px', borderRadius:999, fontSize:10, fontWeight:700, background: color+'22', color, letterSpacing:'0.04em' }}>{label}</span>
+function Chip({ label, color = 'var(--accent)', solid = false }: { label: string; color?: string; solid?: boolean }) {
+  return solid
+    ? <span style={{ display:'inline-flex', alignItems:'center', padding:'3px 10px', borderRadius:999, fontSize:10, fontWeight:700, background: color, color:'var(--t1)', letterSpacing:'0.04em' }}>{label}</span>
+    : <span style={{ display:'inline-flex', alignItems:'center', padding:'3px 10px', borderRadius:999, fontSize:10, fontWeight:700, background: color+'22', color, letterSpacing:'0.04em' }}>{label}</span>
 }
 
 function SectionHeader({ title, action }: { title: string; action?: React.ReactNode }) {
@@ -195,6 +197,29 @@ function SettingsModal({ month, user, onClose, onSave, onSignOut }: { month: Mon
   const [total,setTotal]=useState(String(month.totalBudget))
   const [home,setHome]=useState(String(month.homePart))
   const [wallet,setWallet]=useState(String(month.walletPart))
+  const [varBases,setVarBases]=useState<Record<string,string>>(
+    Object.fromEntries(VARIABLE_TYPES.map(t=>[t,String(month.variableCategoryBases[t]??0)]))
+  )
+  const [fixedBases,setFixedBases]=useState<Record<string,string>>(
+    Object.fromEntries(FIXED_TYPES.map(t=>[t,String(month.fixedCategoryBases[t]??0)]))
+  )
+  const [showCats,setShowCats]=useState(false)
+
+  function save() {
+    const nextVarBases = { ...month.variableCategoryBases }
+    VARIABLE_TYPES.forEach(t => { const v = parseFloat(varBases[t]); if (!isNaN(v)) nextVarBases[t] = v })
+    const nextFixedBases = { ...month.fixedCategoryBases }
+    FIXED_TYPES.forEach(t => { const v = parseFloat(fixedBases[t]); if (!isNaN(v)) nextFixedBases[t] = v })
+    onSave({
+      totalBudget: parseFloat(total) || month.totalBudget,
+      homePart: parseFloat(home) || month.homePart,
+      walletPart: parseFloat(wallet) || month.walletPart,
+      variableCategoryBases: nextVarBases,
+      fixedCategoryBases: nextFixedBases,
+    })
+    onClose()
+  }
+
   return (
     <Modal title="Settings" onClose={onClose}>
       <div className="glass-2 p-4 flex items-center gap-3">
@@ -202,20 +227,54 @@ function SettingsModal({ month, user, onClose, onSave, onSignOut }: { month: Mon
           style={{background:'var(--accent)'}}>
           {user?.photoURL
             ? <img src={user.photoURL} className="w-12 h-12 rounded-full object-cover" alt="avatar"/>
-            : <span className="f-display" style={{fontSize:18,fontWeight:700,color:'#1B1510'}}>{(user?.displayName||'U')[0]}</span>}
+            : <span className="f-display" style={{fontSize:18,fontWeight:700,color:'var(--accent-ink)'}}>{(user?.displayName||'U')[0]?.toUpperCase()}</span>}
         </div>
         <div className="flex-1">
           <p style={{fontWeight:700,fontSize:15,color:'var(--t1)'}}>{user?.displayName || 'User'}</p>
           <p style={{fontSize:12,color:'var(--t2)'}}>{user?.email}</p>
         </div>
-        <Chip label="FREE" color="var(--accent)"/>
+        <Chip label="FREE" color="var(--accent)" solid/>
       </div>
       <div><FL label="Total Monthly Budget (MAD)"/><input className="field" type="number" value={total} onChange={e=>setTotal(e.target.value)}/></div>
       <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12}}>
         <div><FL label="Home"/><input className="field" type="number" value={home} onChange={e=>setHome(e.target.value)}/></div>
         <div><FL label="Wallet"/><input className="field" type="number" value={wallet} onChange={e=>setWallet(e.target.value)}/></div>
       </div>
-      <button className="btn-primary tap" onClick={()=>{onSave({totalBudget:parseFloat(total)||month.totalBudget,homePart:parseFloat(home)||month.homePart,walletPart:parseFloat(wallet)||month.walletPart});onClose()}}>
+
+      <button className="tap flex items-center justify-between w-full glass-2" style={{padding:'12px 14px'}} onClick={()=>setShowCats(s=>!s)}>
+        <span style={{fontSize:13,fontWeight:700,color:'var(--t1)'}}>Category budgets</span>
+        {showCats ? <CaretDown size={14} color="var(--t3)"/> : <CaretRight size={14} color="var(--t3)"/>}
+      </button>
+      {showCats && (
+        <div className="fade-in" style={{display:'flex',flexDirection:'column',gap:14}}>
+          <div>
+            <FL label="Variable categories"/>
+            <div style={{display:'flex',flexDirection:'column',gap:8}}>
+              {VARIABLE_TYPES.map(t=>(
+                <div key={t} style={{display:'flex',alignItems:'center',gap:10}}>
+                  <span style={{flex:1,fontSize:12,color:'var(--t2)'}}>{t}</span>
+                  <input className="field" type="number" style={{width:100,padding:'8px 10px'}}
+                    value={varBases[t]} onChange={e=>setVarBases(b=>({...b,[t]:e.target.value}))}/>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div>
+            <FL label="Fixed categories"/>
+            <div style={{display:'flex',flexDirection:'column',gap:8}}>
+              {FIXED_TYPES.map(t=>(
+                <div key={t} style={{display:'flex',alignItems:'center',gap:10}}>
+                  <span style={{flex:1,fontSize:12,color:'var(--t2)'}}>{t}</span>
+                  <input className="field" type="number" style={{width:100,padding:'8px 10px'}}
+                    value={fixedBases[t]} onChange={e=>setFixedBases(b=>({...b,[t]:e.target.value}))}/>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      <button className="btn-primary tap" onClick={save}>
         <Check size={16} weight="bold"/> Save Settings
       </button>
       <div className="glass-2 p-4 flex items-center gap-3" style={{border:'1px solid var(--border-2)'}}>
@@ -224,9 +283,12 @@ function SettingsModal({ month, user, onClose, onSave, onSignOut }: { month: Mon
         </div>
         <div className="flex-1">
           <p style={{fontWeight:700,fontSize:13,color:'var(--t1)'}}>Upgrade to Pro</p>
-          <p style={{fontSize:11,color:'var(--t2)'}}>Unlimited months, insights, export</p>
+          <p style={{fontSize:11,color:'var(--t2)'}}>Unlimited months, insights, export — coming soon</p>
         </div>
-        <button className="tap" style={{background:'var(--accent)',color:'#1B1510',padding:'7px 14px',borderRadius:999,fontSize:12,fontWeight:700,whiteSpace:'nowrap',border:'none'}}>Go Pro</button>
+        <button disabled className="tap" title="Pro plan launching soon"
+          style={{background:'var(--accent)',color:'var(--accent-ink)',padding:'7px 14px',borderRadius:999,fontSize:12,fontWeight:700,whiteSpace:'nowrap',border:'none',opacity:0.55,cursor:'not-allowed'}}>
+          Soon
+        </button>
       </div>
       <button onClick={onSignOut} className="btn-ghost tap w-full">
         <SignOut size={15} weight="bold"/> Sign out
@@ -327,20 +389,20 @@ function Overview({ month }: { month: MonthBudget }) {
 
       {/* Spend trajectory */}
       <div className="glass" style={{padding:20}}>
-        <SectionHeader title="Spend Trajectory" action={<Chip label="This Month" color="var(--accent)"/>}/>
+        <SectionHeader title="Spend Trajectory" action={<Chip label="This Month" color="var(--accent)" solid/>}/>
         <div style={{height:80}}>
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart data={sparkData} margin={{top:4,right:4,left:4,bottom:0}}>
               <defs>
                 <linearGradient id="g1" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#D6A75C" stopOpacity={0.35}/>
-                  <stop offset="100%" stopColor="#D6A75C" stopOpacity={0}/>
+                  <stop offset="0%" stopColor="#D9A983" stopOpacity={0.45}/>
+                  <stop offset="100%" stopColor="#D9A983" stopOpacity={0}/>
                 </linearGradient>
               </defs>
-              <XAxis dataKey="w" tick={{fontSize:9,fill:'#6C6459'}} axisLine={false} tickLine={false}/>
-              <Area type="monotone" dataKey="v" stroke="#D6A75C" strokeWidth={2} fill="url(#g1)"
-                dot={{r:3,fill:'#D6A75C',strokeWidth:0}}/>
-              <Tooltip contentStyle={{background:'#221E1A',border:'1px solid rgba(247,241,232,0.16)',borderRadius:10,fontSize:12,color:'#F4EFE6'}}
+              <XAxis dataKey="w" tick={{fontSize:9,fill:'#A9A9A9'}} axisLine={false} tickLine={false}/>
+              <Area type="monotone" dataKey="v" stroke="#D9A983" strokeWidth={2} fill="url(#g1)"
+                dot={{r:3,fill:'#D9A983',strokeWidth:0}}/>
+              <Tooltip contentStyle={{background:'#262626',border:'1px solid rgba(255,255,255,0.08)',borderRadius:10,fontSize:12,color:'#FFFFFF'}}
                 formatter={(v:number)=>[`${fmt(v)} MAD`,'Spent']}/>
             </AreaChart>
           </ResponsiveContainer>
@@ -355,10 +417,10 @@ function Overview({ month }: { month: MonthBudget }) {
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie data={pieData} cx="50%" cy="50%" innerRadius={36} outerRadius={55}
-                  dataKey="value" strokeWidth={2} stroke="#131110" paddingAngle={2}>
+                  dataKey="value" strokeWidth={2} stroke="#FFFFFF" paddingAngle={2}>
                   {pieData.map((e,i)=><Cell key={i} fill={e.color}/>)}
                 </Pie>
-                <Tooltip contentStyle={{background:'#221E1A',border:'1px solid rgba(247,241,232,0.16)',borderRadius:10,fontSize:12,color:'#F4EFE6'}}
+                <Tooltip contentStyle={{background:'#262626',border:'1px solid rgba(255,255,255,0.08)',borderRadius:10,fontSize:12,color:'#FFFFFF'}}
                   formatter={(v:number)=>[`${fmt(v)} MAD`,'']} labelFormatter={()=>''}/>
               </PieChart>
             </ResponsiveContainer>
@@ -603,7 +665,7 @@ function SavingsTab({month,onAdd,onDelete,onToggle}:{month:MonthBudget;onAdd:(g:
                   <div style={{display:'flex',alignItems:'flex-start',gap:12}}>
                     <button onClick={()=>onToggle(goal.id)} className="tap"
                       style={{width:28,height:28,borderRadius:'50%',background:'var(--good)',flexShrink:0,display:'flex',alignItems:'center',justifyContent:'center',marginTop:2,border:'none'}}>
-                      <Check size={13} color="#131110" weight="bold"/>
+                      <Check size={13} color="var(--color-text-inverse)" weight="bold"/>
                     </button>
                     <div style={{flex:1}}>
                       <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:4}}>
@@ -661,28 +723,34 @@ function SavingsTab({month,onAdd,onDelete,onToggle}:{month:MonthBudget;onAdd:(g:
 type Tab = 'overview'|'variable'|'fixed'|'savings'
 
 export default function Dashboard() {
-  const { user, loading: authLoading, signOut } = useAuth()
+  const { user, loading: authLoading, configError, signOut } = useAuth()
   const router = useRouter()
   const [month, setMonth] = useState<MonthBudget | null>(null)
   const [monthId, setMonthId] = useState(currentMonthId())
   const [tab, setTab] = useState<Tab>('overview')
   const [showSettings, setShowSettings] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [error, setError] = useState('')
 
   useEffect(() => {
-    if (!authLoading && !user) router.replace('/login')
-  }, [user, authLoading, router])
+    if (!authLoading && !user && !configError) router.replace('/login')
+  }, [user, authLoading, configError, router])
 
   useEffect(() => {
     if (!user) return
-    const unsub = subscribeMonth(user.uid, monthId, async (m) => {
-      if (m) { setMonth(m) }
-      else {
-        const fresh = defaultMonth(monthId)
-        await saveMonth(user.uid, fresh)
-        setMonth(fresh)
-      }
-    })
+    const unsub = subscribeMonth(
+      user.uid, monthId,
+      async (m) => {
+        setError('')
+        if (m) { setMonth(m) }
+        else {
+          const fresh = defaultMonth(monthId)
+          try { await saveMonth(user.uid, fresh) } catch (e) { console.error(e); setError("Couldn't create this month's budget. Check your connection and try again.") }
+          setMonth(fresh)
+        }
+      },
+      () => setError("Couldn't load your budget — check your connection or Firestore setup.")
+    )
     return () => unsub()
   }, [user, monthId])
 
@@ -690,8 +758,15 @@ export default function Dashboard() {
     if (!user) return
     setMonth(updated)
     setSaving(true)
-    await saveMonth(user.uid, updated)
-    setSaving(false)
+    try {
+      await saveMonth(user.uid, updated)
+      setError('')
+    } catch (e) {
+      console.error(e)
+      setError("Couldn't save your changes. Check your connection and try again.")
+    } finally {
+      setSaving(false)
+    }
   }, [user])
 
   function updateMonth(patch: Partial<MonthBudget>) {
@@ -700,18 +775,30 @@ export default function Dashboard() {
   }
 
   const uid2 = () => Math.random().toString(36).slice(2, 10)
+  const confirmDelete = (label: string) => typeof window === 'undefined' || window.confirm(`Delete ${label}? This can't be undone.`)
   const addVariable  = (e: Omit<VariableExpense,'id'>) => month && persist({...month, variableExpenses:[...month.variableExpenses,{...e,id:uid2()}]})
-  const delVariable  = (id: string) => month && persist({...month, variableExpenses:month.variableExpenses.filter(e=>e.id!==id)})
+  const delVariable  = (id: string) => { if (month && confirmDelete('this expense')) persist({...month, variableExpenses:month.variableExpenses.filter(e=>e.id!==id)}) }
   const addFixed     = (e: Omit<FixedExpense,'id'>)    => month && persist({...month, fixedExpenses:[...month.fixedExpenses,{...e,id:uid2()}]})
-  const delFixed     = (id: string) => month && persist({...month, fixedExpenses:month.fixedExpenses.filter(e=>e.id!==id)})
+  const delFixed     = (id: string) => { if (month && confirmDelete('this fixed charge')) persist({...month, fixedExpenses:month.fixedExpenses.filter(e=>e.id!==id)}) }
   const addSaving    = (g: Omit<SavingGoal,'id'>)      => month && persist({...month, savingGoals:[...month.savingGoals,{...g,id:uid2()}]})
-  const delSaving    = (id: string) => month && persist({...month, savingGoals:month.savingGoals.filter(g=>g.id!==id)})
+  const delSaving    = (id: string) => { if (month && confirmDelete('this saving goal')) persist({...month, savingGoals:month.savingGoals.filter(g=>g.id!==id)}) }
   const toggleSaving = (id: string) => month && persist({...month, savingGoals:month.savingGoals.map(g=>g.id===id?{...g,active:!g.active}:g)})
 
   async function handleSignOut() {
     await signOut()
     router.replace('/login')
   }
+
+  if (configError) return (
+    <div className="min-h-screen flex items-center justify-center px-6" style={{background:'var(--bg)'}}>
+      <div className="glass" style={{maxWidth:380,padding:24,textAlign:'center'}}>
+        <p className="f-display" style={{fontWeight:700,fontSize:17,color:'var(--t1)',marginBottom:8}}>Firebase isn&rsquo;t configured</p>
+        <p style={{fontSize:13,color:'var(--t2)',lineHeight:1.5}}>
+          Add your Firebase project credentials to <code style={{background:'var(--surface-2)',padding:'1px 5px',borderRadius:4}}>.env.local</code> (see <code style={{background:'var(--surface-2)',padding:'1px 5px',borderRadius:4}}>.env.local.example</code>) and restart the app.
+        </p>
+      </div>
+    </div>
+  )
 
   if (authLoading || !month) return (
     <div className="min-h-screen flex items-center justify-center" style={{background:'var(--bg)'}}>
@@ -733,7 +820,7 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen flex flex-col max-w-md mx-auto" style={{background:'var(--bg)'}}>
       {/* Top bar */}
-      <div className="safe-top sticky top-0 z-40" style={{background:'rgba(19,17,16,0.9)',backdropFilter:'blur(20px)',borderBottom:'1px solid var(--border)'}}>
+      <div className="safe-top sticky top-0 z-40" style={{background:'rgba(255,255,255,0.85)',backdropFilter:'blur(20px)',borderBottom:'1px solid var(--border)'}}>
         <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'12px 20px'}}>
           <div style={{display:'flex',alignItems:'center',gap:8}}>
             <button className="tap" onClick={()=>setMonthId(prevMonth(monthId))}
@@ -762,6 +849,7 @@ export default function Dashboard() {
 
       {/* Content */}
       <div className="flex-1 overflow-y-auto px-4 pt-4 pb-28">
+        {error && <div className="banner banner-error fade-in" style={{marginBottom:16}}>{error}</div>}
         {tab==='overview' && <Overview month={month}/>}
         {tab==='variable' && <VariableTab month={month} onAdd={addVariable} onDelete={delVariable}/>}
         {tab==='fixed'    && <FixedTab month={month} onAdd={addFixed} onDelete={delFixed}/>}
@@ -770,7 +858,7 @@ export default function Dashboard() {
 
       {/* Bottom nav */}
       <nav className="safe-bottom fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md z-40"
-        style={{background:'rgba(19,17,16,0.94)',backdropFilter:'blur(24px)',borderTop:'1px solid var(--border)'}}>
+        style={{background:'rgba(255,255,255,0.92)',backdropFilter:'blur(24px)',borderTop:'1px solid var(--border)'}}>
         <div style={{display:'flex',padding:'4px 8px'}}>
           {tabs.map(t=>{
             const active=tab===t.id
@@ -778,7 +866,7 @@ export default function Dashboard() {
               <button key={t.id} onClick={()=>setTab(t.id)} className="tap"
                 style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',
                   padding:'8px 4px',borderRadius:14,gap:4,
-                  color:active?'var(--accent)':'var(--t3)',
+                  color:active?'var(--t1)':'var(--t3)',
                   background:active?'var(--accent-tint)':'transparent',
                   transition:'all 0.15s'}}>
                 <t.Icon size={19} weight={active?'fill':'regular'}/>

@@ -4,18 +4,20 @@ import { createContext, useContext, useEffect, useState, ReactNode } from 'react
 import {
   onAuthStateChanged, signInWithPopup, signOut as firebaseSignOut,
   User, createUserWithEmailAndPassword, signInWithEmailAndPassword,
-  updateProfile,
+  updateProfile, sendPasswordResetEmail,
 } from 'firebase/auth'
-import { auth, googleProvider } from './firebase'
+import { auth, googleProvider, isFirebaseConfigured } from './firebase'
 import { upsertUserProfile, getUserProfile, UserProfile } from './db'
 
 interface AuthCtx {
   user: User | null
   profile: UserProfile | null
   loading: boolean
+  configError: boolean
   signInGoogle: () => Promise<void>
   signInEmail: (email: string, pass: string) => Promise<void>
   signUpEmail: (email: string, pass: string, name: string) => Promise<void>
+  resetPassword: (email: string) => Promise<void>
   signOut: () => Promise<void>
 }
 
@@ -27,12 +29,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    // No Firebase project wired up yet — don't touch the SDK at all.
+    if (!isFirebaseConfigured) {
+      setLoading(false)
+      return
+    }
     return onAuthStateChanged(auth, async u => {
       setUser(u)
       if (u) {
-        await upsertUserProfile(u.uid, { email: u.email!, displayName: u.displayName || 'User', photoURL: u.photoURL || undefined })
-        const p = await getUserProfile(u.uid)
-        setProfile(p)
+        try {
+          await upsertUserProfile(u.uid, { email: u.email!, displayName: u.displayName || 'User', photoURL: u.photoURL || undefined })
+          const p = await getUserProfile(u.uid)
+          setProfile(p)
+        } catch (e) {
+          // Profile read/write failing (e.g. Firestore rules not deployed
+          // yet) shouldn't block the user out of the app entirely.
+          console.error('Failed to load/create user profile', e)
+          setProfile(null)
+        }
       } else {
         setProfile(null)
       }
@@ -53,11 +67,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await updateProfile(cred.user, { displayName: name })
   }
 
+  async function resetPassword(email: string) {
+    await sendPasswordResetEmail(auth, email)
+  }
+
   async function signOut() {
     await firebaseSignOut(auth)
   }
 
-  return <Ctx.Provider value={{ user, profile, loading, signInGoogle, signInEmail, signUpEmail, signOut }}>{children}</Ctx.Provider>
+  return (
+    <Ctx.Provider value={{ user, profile, loading, configError: !isFirebaseConfigured, signInGoogle, signInEmail, signUpEmail, resetPassword, signOut }}>
+      {children}
+    </Ctx.Provider>
+  )
 }
 
 export const useAuth = () => {

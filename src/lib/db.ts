@@ -49,14 +49,23 @@ export async function saveMonth(uid: string, month: MonthBudget) {
   await setDoc(monthDocRef(uid, month.id), { ...month, updatedAt: serverTimestamp() })
 }
 
+// Subscribes to a month document. `onError` fires on permission-denied /
+// offline / rules-misconfiguration errors so the UI can show a real message
+// instead of spinning forever or silently losing writes.
 export function subscribeMonth(
   uid: string,
   monthId: string,
-  cb: (m: MonthBudget | null) => void
+  cb: (m: MonthBudget | null) => void,
+  onError?: (err: Error) => void
 ) {
-  return onSnapshot(monthDocRef(uid, monthId), snap => {
-    cb(snap.exists() ? (snap.data() as MonthBudget) : null)
-  })
+  return onSnapshot(
+    monthDocRef(uid, monthId),
+    snap => cb(snap.exists() ? (snap.data() as MonthBudget) : null),
+    err => {
+      console.error('subscribeMonth error', err)
+      onError?.(err as unknown as Error)
+    }
+  )
 }
 
 export async function listMonths(uid: string): Promise<MonthBudget[]> {

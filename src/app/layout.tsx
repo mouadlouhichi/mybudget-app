@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   appleWebApp: { capable: true, statusBarStyle: 'black-translucent', title: 'Flousy' },
 }
 export const viewport: Viewport = {
-  themeColor: '#131110',
+  themeColor: '#FFFFFF',
   width: 'device-width', initialScale: 1, maximumScale: 1, userScalable: false,
 }
 export default function RootLayout({ children }: { children: React.ReactNode }) {

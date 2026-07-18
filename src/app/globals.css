@@ -4,40 +4,68 @@
 @tailwind utilities;
 
 /*
-  BRAND: Flousy — "Black and Tan"
-  Off-black surfaces, warm tan/gold single accent, sharp contrast.
-  No purple, no teal-glow, no beige/brass premium-consumer cliche.
+  BRAND: Flousy — "Cream & Tan"
+  Clean white surfaces, soft peach-tan single accent, near-black text.
+  Bright, calm, and readable — no dark glass, no neon.
 */
 
 :root {
-  /* surfaces — warm off-black, never pure #000 */
-  --bg:        #131110;
-  --surface:   #1B1815;
-  --surface-2: #221E1A;
-  --surface-3: #2A2521;
-  --border:    rgba(247,241,232,0.08);
-  --border-2:  rgba(247,241,232,0.16);
+  /* Base */
+  --color-bg: #FFFFFF;
+  --color-surface: #F8F8F8;
+  --color-card: #FFFFFF;
+  /* Brand */
+  --color-primary: #EEC1A0;
+  --color-primary-light: #F4D7C2;
+  --color-primary-dark: #D9A983;
+  /* Text */
+  --color-text: #000000;
+  --color-text-secondary: #4D4D4D;
+  --color-text-muted: #A9A9A9;
+  --color-text-inverse: #FFFFFF;
+  /* Borders */
+  --color-border: #E5E5E5;
+  --color-divider: #F0F0F0;
+  /* Icons */
+  --color-icon: #000000;
+  --color-icon-muted: #A9A9A9;
+  /* States */
+  --color-success: #4CAF50;
+  --color-warning: #F4B400;
+  --color-error: #E53935;
+  --color-info: #2196F3;
+  /* Shadows */
+  --shadow-color: rgba(0, 0, 0, 0.08);
 
-  /* single accent — warm tan / gold */
-  --accent:      #D6A75C;
-  --accent-dim:  #B98B42;
-  --accent-tint: rgba(214,167,92,0.14);
+  /* ── app-level semantic aliases — every component reads these ── */
+  --bg:        var(--color-bg);
+  --surface:   var(--color-card);
+  --surface-2: var(--color-surface);
+  --surface-3: #F1ECE6;
+  --border:    var(--color-divider);
+  --border-2:  var(--color-border);
 
-  /* semantic (muted, not neon) */
-  --good:  #5FA97A;
-  --good-tint: rgba(95,169,122,0.14);
-  --bad:   #C9695A;
-  --bad-tint: rgba(201,105,90,0.14);
-  --warn:  var(--accent);
-  --warn-tint: var(--accent-tint);
+  /* single accent — soft peach-tan */
+  --accent:      var(--color-primary);
+  --accent-dim:  var(--color-primary-dark);
+  --accent-tint: rgba(238,193,160,0.20);
+  --accent-ink:  var(--color-text); /* text color placed on top of --accent */
 
-  /* text — warm off-white, never pure #fff */
-  --t1: #F4EFE6;
-  --t2: #A79E90;
-  --t3: #6C6459;
+  /* semantic */
+  --good:      var(--color-success);
+  --good-tint: rgba(76,175,80,0.12);
+  --bad:       var(--color-error);
+  --bad-tint:  rgba(229,57,53,0.10);
+  --warn:      var(--color-warning);
+  --warn-tint: rgba(244,180,0,0.14);
 
-  --shadow-card: 0 6px 24px rgba(0,0,0,0.28);
-  --shadow-btn:  0 4px 18px rgba(214,167,92,0.28);
+  /* text */
+  --t1: var(--color-text);
+  --t2: var(--color-text-secondary);
+  --t3: var(--color-text-muted);
+
+  --shadow-card: 0 4px 20px var(--shadow-color);
+  --shadow-btn:  0 4px 14px rgba(217,169,131,0.45);
 
   /* shape system — locked, do not deviate */
   --r-card: 20px;
@@ -79,7 +107,7 @@ body {
 /* ── buttons: pill, always ── */
 .btn-primary {
   background: var(--accent);
-  color: #1B1510;
+  color: var(--accent-ink);
   font-family: 'Space Grotesk', sans-serif;
   font-weight: 700;
   font-size: 15px;
@@ -95,7 +123,7 @@ body {
   border: none;
   cursor: pointer;
 }
-.btn-primary:active { transform: scale(0.97) translateY(1px); box-shadow: 0 2px 8px rgba(214,167,92,0.2); }
+.btn-primary:active { transform: scale(0.97) translateY(1px); box-shadow: 0 2px 8px rgba(217,169,131,0.3); }
 
 .btn-ghost {
   background: var(--surface-2);
@@ -114,6 +142,27 @@ body {
 }
 .btn-ghost:active { background: var(--surface-3); transform: scale(0.97); }
 
+.btn-primary:disabled, .btn-ghost:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+/* ── inline banners: error / success / info messages ── */
+.banner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 10px 14px;
+  border-radius: var(--r-field);
+  border: 1px solid transparent;
+}
+.banner-error   { color: var(--bad);  background: var(--bad-tint);  border-color: var(--bad-tint); }
+.banner-success { color: var(--good); background: var(--good-tint); border-color: var(--good-tint); }
+.banner-info    { color: var(--t2);   background: var(--surface-2); border-color: var(--border-2); }
+
 /* ── inputs ── */
 .field {
   width: 100%;
@@ -130,8 +179,8 @@ body {
 .field:focus { border-color: var(--accent); background: var(--accent-tint); }
 .field::placeholder { color: var(--t3); }
 
-input[type="date"] { color-scheme: dark; }
-select.field { color-scheme: dark; }
+input[type="date"] { color-scheme: light; }
+select.field { color-scheme: light; }
 select.field option { background: var(--surface); color: var(--t1); }
 
 /* ── progress ── */
