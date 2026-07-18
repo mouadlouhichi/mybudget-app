@@ -1,0 +1,173 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+  BRAND: Flousy — "Black and Tan"
+  Off-black surfaces, warm tan/gold single accent, sharp contrast.
+  No purple, no teal-glow, no beige/brass premium-consumer cliche.
+*/
+
+:root {
+  /* surfaces — warm off-black, never pure #000 */
+  --bg:        #131110;
+  --surface:   #1B1815;
+  --surface-2: #221E1A;
+  --surface-3: #2A2521;
+  --border:    rgba(247,241,232,0.08);
+  --border-2:  rgba(247,241,232,0.16);
+
+  /* single accent — warm tan / gold */
+  --accent:      #D6A75C;
+  --accent-dim:  #B98B42;
+  --accent-tint: rgba(214,167,92,0.14);
+
+  /* semantic (muted, not neon) */
+  --good:  #5FA97A;
+  --good-tint: rgba(95,169,122,0.14);
+  --bad:   #C9695A;
+  --bad-tint: rgba(201,105,90,0.14);
+  --warn:  var(--accent);
+  --warn-tint: var(--accent-tint);
+
+  /* text — warm off-white, never pure #fff */
+  --t1: #F4EFE6;
+  --t2: #A79E90;
+  --t3: #6C6459;
+
+  --shadow-card: 0 6px 24px rgba(0,0,0,0.28);
+  --shadow-btn:  0 4px 18px rgba(214,167,92,0.28);
+
+  /* shape system — locked, do not deviate */
+  --r-card: 20px;
+  --r-field: 14px;
+  --r-pill: 999px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Manrope', system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--t1);
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior: none;
+  min-height: 100vh;
+}
+
+.f-display { font-family: 'Space Grotesk', system-ui, sans-serif; }
+
+/* ── cards: one radius, everywhere ── */
+.glass {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-card);
+  box-shadow: var(--shadow-card);
+}
+.glass-2 {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--r-field);
+}
+.glass-3 {
+  background: var(--surface-3);
+  border: 1px solid var(--border-2);
+  border-radius: var(--r-field);
+}
+
+/* ── buttons: pill, always ── */
+.btn-primary {
+  background: var(--accent);
+  color: #1B1510;
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 700;
+  font-size: 15px;
+  padding: 14px 24px;
+  border-radius: var(--r-pill);
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+  box-shadow: var(--shadow-btn);
+  border: none;
+  cursor: pointer;
+}
+.btn-primary:active { transform: scale(0.97) translateY(1px); box-shadow: 0 2px 8px rgba(214,167,92,0.2); }
+
+.btn-ghost {
+  background: var(--surface-2);
+  color: var(--t1);
+  font-weight: 600;
+  font-size: 14px;
+  padding: 12px 20px;
+  border-radius: var(--r-pill);
+  border: 1px solid var(--border-2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: background 0.12s ease, transform 0.12s ease;
+}
+.btn-ghost:active { background: var(--surface-3); transform: scale(0.97); }
+
+/* ── inputs ── */
+.field {
+  width: 100%;
+  padding: 13px 16px;
+  border-radius: var(--r-field);
+  border: 1.5px solid var(--border-2);
+  background: var(--surface-2);
+  color: var(--t1);
+  font-family: 'Manrope', sans-serif;
+  font-size: 14px;
+  outline: none;
+  transition: border 0.15s ease, background 0.15s ease;
+}
+.field:focus { border-color: var(--accent); background: var(--accent-tint); }
+.field::placeholder { color: var(--t3); }
+
+input[type="date"] { color-scheme: dark; }
+select.field { color-scheme: dark; }
+select.field option { background: var(--surface); color: var(--t1); }
+
+/* ── progress ── */
+.prog { background: var(--surface-3); border-radius: var(--r-pill); overflow: hidden; }
+
+/* ── motion: motivated only — entry + feedback, no idle loops ── */
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
+}
+
+.slide-up { animation: slide-up 0.3s cubic-bezier(0.22,1,0.36,1) both; }
+.fade-in  { animation: fade-in 0.2s ease both; }
+
+.skeleton {
+  background: linear-gradient(90deg, var(--surface-2) 25%, var(--surface-3) 50%, var(--surface-2) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.3s infinite;
+  border-radius: 8px;
+}
+
+/* ── scrollbar ── */
+::-webkit-scrollbar { width: 3px; }
+::-webkit-scrollbar-thumb { background: var(--border-2); border-radius: 2px; }
+
+/* ── safe areas ── */
+.safe-top    { padding-top: env(safe-area-inset-top, 0px); }
+.safe-bottom { padding-bottom: env(safe-area-inset-bottom, 16px); }
+
+/* ── tactile press feedback ── */
+.tap { transition: transform 0.12s ease, opacity 0.12s ease; cursor: pointer; }
+.tap:active { transform: scale(0.96); opacity: 0.85; }
+
+.num { font-variant-numeric: tabular-nums; font-feature-settings: "tnum"; }
