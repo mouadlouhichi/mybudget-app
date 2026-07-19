@@ -199,7 +199,7 @@ function AddFixedModal({ month, onClose, onAdd }: { month: MonthBudget; onClose:
             return (
               <button key={t} onClick={()=>setType(t)} className="tap flex items-center gap-2 px-3 py-2.5 rounded-xl"
                 style={{background:type===t?c+'22':'var(--surface-2)',border:`1.5px solid ${type===t?c:'var(--border)'}`}}>
-                <Ico size={15} weight="bold" color={type===t?c:'var(--t2)'} />
+                <Ico size={24} weight="bold" color={type===t?c:'var(--t2)'} />
                 <span style={{fontSize:11,fontWeight:700,color:type===t?c:'var(--t2)'}}>{t}</span>
               </button>
             )
@@ -1258,7 +1258,7 @@ export default function Dashboard() {
         </div>
 
         {/* Bottom nav - mobile only, Instagram-style icon-only; desktop uses the sidebar instead */}
-        <nav className="safe-bottom fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md z-40 md:hidden"
+        <nav className="safe-bottom fixed bottom-4 left-1/2 -translate-x-1/2 w-full max-w-md z-40 md:hidden"
           style={{background:'rgba(255,255,255,0.92)',backdropFilter:'blur(24px)',borderTop:'1px solid var(--border)'}}>
           <div style={{display:'flex',padding:'2px 12px'}}>
             {mobileTabs.map(t=>{
