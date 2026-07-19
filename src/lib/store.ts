@@ -51,6 +51,10 @@ export interface MonthBudget {
   activeVariableCategories: string[]
   activeFixedCategories: string[]
   categoryColors: Record<string, string>
+  // Icon key (see category-icons.tsx ICON_BY_KEY) chosen for a custom
+  // category. Categories without an entry here fall back to CAT_ICON / the
+  // generic fallback icon.
+  categoryIcons: Record<string, string>
   updatedAt?: unknown
 }
 
@@ -82,6 +86,7 @@ export function normalizeMonth(m: MonthBudget): MonthBudget {
     activeVariableCategories: m.activeVariableCategories?.length ? m.activeVariableCategories : [...VARIABLE_TYPES],
     activeFixedCategories: m.activeFixedCategories?.length ? m.activeFixedCategories : [...FIXED_TYPES],
     categoryColors: m.categoryColors ?? {},
+    categoryIcons: m.categoryIcons ?? {},
   }
 }
 
@@ -107,6 +112,7 @@ export function emptyMonth(monthId?: string): MonthBudget {
     activeVariableCategories: [...VARIABLE_TYPES],
     activeFixedCategories: [...FIXED_TYPES],
     categoryColors: {},
+    categoryIcons: {},
   }
 }
 
@@ -124,6 +130,7 @@ export function rolloverMonth(monthId: string, prev: MonthBudget): MonthBudget {
     activeVariableCategories: prev.activeVariableCategories ? [...prev.activeVariableCategories] : [...VARIABLE_TYPES],
     activeFixedCategories: prev.activeFixedCategories ? [...prev.activeFixedCategories] : [...FIXED_TYPES],
     categoryColors: { ...(prev.categoryColors || {}) },
+    categoryIcons: { ...(prev.categoryIcons || {}) },
   }
 }
 
@@ -253,6 +260,7 @@ export function buildMonthFromOnboarding(monthId: string, r: OnboardingResult): 
     activeVariableCategories: [...VARIABLE_TYPES],
     activeFixedCategories: [...FIXED_TYPES],
     categoryColors: {},
+    categoryIcons: {},
   }
 }
 

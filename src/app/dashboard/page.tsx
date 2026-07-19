@@ -10,7 +10,7 @@ import {
   SAVING_SOURCES, SOURCE_TO_PLACE, withMoneyPlaceDelta, moneyPlaceAmount,
   displayVariableCats, displayFixedCats, categoryColor, nextPaletteColor,
 } from '@/lib/store'
-import { CAT_ICON, CAT_ICON_FALLBACK } from '@/lib/category-icons'
+import { CAT_ICON, CAT_ICON_FALLBACK, ICON_BY_KEY, CUSTOM_ICON_CHOICES } from '@/lib/category-icons'
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, AreaChart, Area, XAxis } from 'recharts'
 import {
   House, ChartBar, PiggyBank, Receipt, Gear, PlusCircle,
@@ -29,7 +29,10 @@ const fmt   = (n: number) => n.toLocaleString('fr-MA', { maximumFractionDigits: 
 const pct   = (a: number, b: number) => b ? Math.min(100, Math.round((a / b) * 100)) : 0
 const uid   = () => Math.random().toString(36).slice(2, 10)
 const today = () => new Date().toISOString().slice(0, 10)
-const catIcon = (t: string): Icon => CAT_ICON[t] ?? CAT_ICON_FALLBACK
+const catIcon = (month: MonthBudget, t: string): Icon => {
+  const key = month.categoryIcons?.[t]
+  return (key ? ICON_BY_KEY[key] : undefined) ?? CAT_ICON[t] ?? CAT_ICON_FALLBACK
+}
 const MONEY_PLACE_ICON: Record<MoneyPlace, Icon> = { bank: Bank, home: House, wallet: Wallet }
 const MONEY_PLACE_TINT: Record<MoneyPlace, string> = { bank: '#7B9E8E', home: '#D6A75C', wallet: '#C9695A' }
 
@@ -59,12 +62,35 @@ function PBar({ value, color = 'var(--accent)', h = 5 }: { value: number; color?
   )
 }
 
-/* ── IconBadge - Phosphor icon, one family, tinted background ── */
+/* ── RadialProgress - circular gauge with centered content ── */
+function RadialProgress({ value, size = 108, stroke = 10, color = 'var(--accent)', track = 'var(--border-2)', children }:
+  { value: number; size?: number; stroke?: number; color?: string; track?: string; children?: React.ReactNode }) {
+  const r = (size - stroke) / 2
+  const c = 2 * Math.PI * r
+  const clamped = Math.max(0, Math.min(100, value))
+  const offset = c * (1 - clamped / 100)
+  return (
+    <div className="relative flex items-center justify-center flex-shrink-0" style={{ width: size, height: size }}>
+      <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }}>
+        <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={track} strokeWidth={stroke} />
+        <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={color} strokeWidth={stroke}
+          strokeDasharray={c} strokeDashoffset={offset} strokeLinecap="round"
+          style={{ transition: 'stroke-dashoffset 0.7s cubic-bezier(.22,1,.36,1)' }} />
+      </svg>
+      <div className="absolute inset-0 flex items-center justify-center">{children}</div>
+    </div>
+  )
+}
+
+/* ── IconBadge - Phosphor icon, one family, circular with a soft tinted glow ── */
 function IconBadge({ Icon: Ico, color, size = 40 }: { Icon: Icon; color: string; size?: number }) {
   return (
-    <div className="flex items-center justify-center rounded-xl flex-shrink-0"
-      style={{ width: size, height: size, background: color + '22' }}>
-      <Ico size={size * 0.46} weight="bold" color={color} />
+    <div className="relative flex items-center justify-center flex-shrink-0" style={{ width: size, height: size }}>
+      <div aria-hidden style={{ position:'absolute', inset: -size*0.16, borderRadius:'50%', background: color, opacity: 0.16, filter: `blur(${Math.max(6,size*0.22)}px)` }} />
+      <div className="relative flex items-center justify-center rounded-full"
+        style={{ width: size, height: size, background: color + '20', border: `1px solid ${color}30` }}>
+        <Ico size={size * 0.46} weight="bold" color={color} />
+      </div>
     </div>
   )
 }
@@ -134,7 +160,7 @@ function AddVarModal({ month, onClose, onAdd }: { month: MonthBudget; onClose: (
         <FL label="Category" />
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 8 }}>
           {cats.map(t => {
-            const Ico = catIcon(t)
+            const Ico = catIcon(month, t)
             const c = categoryColor(month, t)
             return (
               <button key={t} onClick={() => setType(t)} className="tap flex flex-col items-center gap-1.5 py-2.5 rounded-xl"
@@ -168,7 +194,7 @@ function AddFixedModal({ month, onClose, onAdd }: { month: MonthBudget; onClose:
       <div><FL label="Type"/>
         <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:8}}>
           {cats.map(t=>{
-            const Ico = catIcon(t)
+            const Ico = catIcon(month, t)
             const c = categoryColor(month, t)
             return (
               <button key={t} onClick={()=>setType(t)} className="tap flex items-center gap-2 px-3 py-2.5 rounded-xl"
@@ -372,7 +398,10 @@ function ManageCategoriesModal({ month, onClose, onSave }: { month: MonthBudget;
   const [activeVar, setActiveVar] = useState<string[]>(month.activeVariableCategories?.length ? month.activeVariableCategories : VARIABLE_TYPES)
   const [activeFixed, setActiveFixed] = useState<string[]>(month.activeFixedCategories?.length ? month.activeFixedCategories : FIXED_TYPES)
   const [colors, setColors] = useState<Record<string,string>>(month.categoryColors || {})
+  const [icons, setIcons] = useState<Record<string,string>>(month.categoryIcons || {})
   const [newName, setNewName] = useState('')
+  const [newIconKey, setNewIconKey] = useState('package')
+  const [iconPickerFor, setIconPickerFor] = useState<'new'|string|null>(null)
 
   const isVar = kind === 'variable'
   const active = isVar ? activeVar : activeFixed
@@ -388,17 +417,24 @@ function ManageCategoriesModal({ month, onClose, onSave }: { month: MonthBudget;
     if (typeof window !== 'undefined' && !window.confirm(`Remove category "${t}"? Existing expenses keep it, but it won't be selectable anymore.`)) return
     setActive(a => a.filter(x=>x!==t))
   }
+  function pickIcon(key: string) {
+    if (iconPickerFor === 'new') setNewIconKey(key)
+    else if (iconPickerFor) setIcons(ic => ({ ...ic, [iconPickerFor]: key }))
+    setIconPickerFor(null)
+  }
   function addCategory() {
     const name = newName.trim()
     if (!name || all.includes(name)) return
     const color = colors[name] ?? nextPaletteColor({ ...month, categoryColors: colors })
     setColors(c => ({ ...c, [name]: color }))
+    setIcons(ic => ({ ...ic, [name]: newIconKey }))
     setActive(a => [...a, name])
     setNewName('')
+    setNewIconKey('package')
   }
 
   function save() {
-    onSave({ activeVariableCategories: activeVar, activeFixedCategories: activeFixed, categoryColors: colors })
+    onSave({ activeVariableCategories: activeVar, activeFixedCategories: activeFixed, categoryColors: colors, categoryIcons: icons })
     onClose()
   }
 
@@ -419,12 +455,15 @@ function ManageCategoriesModal({ month, onClose, onSave }: { month: MonthBudget;
           const isOn = active.includes(t)
           const isCustom = !base.includes(t)
           const c = colors[t] ?? CAT_COLOR[t] ?? '#8A8175'
-          const Ico = catIcon(t)
+          const iconKey = icons[t]
+          const Ico = (iconKey ? ICON_BY_KEY[iconKey] : undefined) ?? CAT_ICON[t] ?? CAT_ICON_FALLBACK
           return (
             <div key={t} className="glass-2" style={{display:'flex',alignItems:'center',gap:10,padding:'9px 12px',opacity:isOn?1:0.5}}>
-              <div style={{width:26,height:26,borderRadius:8,background:c+'22',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+              <button onClick={()=>isCustom && setIconPickerFor(t)} className={isCustom?'tap':undefined}
+                title={isCustom?'Change icon':undefined}
+                style={{width:26,height:26,borderRadius:8,background:c+'22',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,border:'none',cursor:isCustom?'pointer':'default'}}>
                 <Ico size={13} weight="bold" color={c}/>
-              </div>
+              </button>
               <span style={{flex:1,fontSize:13,fontWeight:600,color:'var(--t1)'}}>{t}{isCustom && <span style={{fontSize:9,fontWeight:700,color:'var(--t3)'}}> · custom</span>}</span>
               <button onClick={()=>toggle(t)} className="tap" style={{width:38,height:22,borderRadius:999,background:isOn?'var(--accent)':'var(--surface-3)',position:'relative',border:'none',flexShrink:0}}>
                 <div style={{width:16,height:16,borderRadius:'50%',background:'#fff',position:'absolute',top:3,left:isOn?19:3,transition:'left 0.15s'}}/>
@@ -438,10 +477,35 @@ function ManageCategoriesModal({ month, onClose, onSave }: { month: MonthBudget;
       </div>
 
       <div style={{display:'flex',gap:8}}>
+        <button onClick={()=>setIconPickerFor('new')} className="tap" title="Choose an icon"
+          style={{width:44,height:44,borderRadius:'var(--r-field)',background:'var(--surface-2)',border:'1px solid var(--border)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+          {(() => { const Ico = ICON_BY_KEY[newIconKey] ?? CAT_ICON_FALLBACK; return <Ico size={18} weight="bold" color="var(--t2)"/> })()}
+        </button>
         <input className="field" placeholder={`New ${isVar?'expense':'fixed bill'} category`} value={newName}
           onChange={e=>setNewName(e.target.value)} onKeyDown={e=>{if(e.key==='Enter'){e.preventDefault();addCategory()}}} />
         <button onClick={addCategory} className="btn-primary tap" style={{width:'auto',padding:'0 16px'}}><PlusCircle size={16} weight="bold"/></button>
       </div>
+
+      {iconPickerFor && (
+        <div className="glass-2 fade-in" style={{padding:12}}>
+          <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:10}}>
+            <span style={{fontSize:12,fontWeight:700,color:'var(--t2)'}}>Choose an icon</span>
+            <button onClick={()=>setIconPickerFor(null)} className="tap" style={{color:'var(--t3)'}}><X size={14}/></button>
+          </div>
+          <div style={{display:'grid',gridTemplateColumns:'repeat(7,1fr)',gap:6,maxHeight:190,overflowY:'auto'}}>
+            {CUSTOM_ICON_CHOICES.map(c=>{
+              const selected = (iconPickerFor==='new' ? newIconKey : icons[iconPickerFor]) === c.key
+              return (
+                <button key={c.key} onClick={()=>pickIcon(c.key)} className="tap" title={c.label}
+                  style={{aspectRatio:'1',borderRadius:10,display:'flex',alignItems:'center',justifyContent:'center',
+                    background:selected?'var(--accent-tint)':'var(--surface-2)',border:`1.5px solid ${selected?'var(--accent)':'var(--border)'}`}}>
+                  <c.Icon size={16} weight="bold" color={selected?'var(--accent)':'var(--t2)'}/>
+                </button>
+              )
+            })}
+          </div>
+        </div>
+      )}
 
       <button className="btn-primary tap" onClick={save}>
         <Check size={16} weight="bold"/> Save Categories
@@ -511,21 +575,30 @@ function Overview({ month, savings }: { month: MonthBudget; savings: SavingsData
           </div>
         </div>
 
-        <div className="relative" style={{marginBottom:20}}>
-          <div style={{display:'flex',justifyContent:'space-between',marginBottom:8}}>
-            <span style={{fontSize:12,color:'var(--t3)'}}>Spent {spentPct}%</span>
-            <span style={{fontSize:12,fontWeight:700,color:remaining<0?'var(--bad)':'var(--good)'}}>
-              {remaining<0?'-':'+'}{fmt(Math.abs(remaining))} left
-            </span>
-          </div>
-          <PBar value={spentPct} color="var(--accent)" h={8}/>
-          <div className="flex items-center gap-4" style={{marginTop:10}}>
-            {[{l:'Fixed',v:totalFixed,c:'var(--accent-dim)'},{l:'Variable',v:totalVar,c:'var(--accent)'}].map(i=>(
-              <div key={i.l} className="flex items-center gap-1.5">
-                <div style={{width:6,height:6,borderRadius:'50%',background:i.c}}/>
-                <span style={{fontSize:11,color:'var(--t3)'}}>{i.l} <b className="num" style={{color:'var(--t2)',fontWeight:700}}>{fmt(i.v)}</b></span>
+        <div className="relative flex items-center gap-5" style={{marginBottom:20}}>
+          <RadialProgress value={spentPct} color={statusColor}>
+            <div style={{textAlign:'center'}}>
+              <p className="f-display num" style={{fontSize:20,fontWeight:700,color:'var(--t1)',lineHeight:1.05}}>{fmt(Math.abs(remaining))}</p>
+              <p style={{fontSize:8.5,fontWeight:700,color:'var(--t3)',textTransform:'uppercase',letterSpacing:'0.06em',marginTop:2}}>
+                {remaining<0?'Over budget':'Left to spend'}
+              </p>
+            </div>
+          </RadialProgress>
+          <div style={{flex:1,display:'flex',flexDirection:'column',gap:9}}>
+            {[{l:'Fixed',v:totalFixed,c:'var(--accent-dim)'},{l:'Variable',v:totalVar,c:'var(--accent)'},{l:'Saved',v:totalSaved,c:'var(--good)'}].map(i=>(
+              <div key={i.l} className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div style={{width:7,height:7,borderRadius:'50%',background:i.c}}/>
+                  <span style={{fontSize:12,color:'var(--t2)'}}>{i.l}</span>
+                </div>
+                <span className="num" style={{fontSize:13,fontWeight:700,color:'var(--t1)'}}>{fmt(i.v)}</span>
               </div>
             ))}
+            <div style={{height:1,background:'var(--border)',margin:'2px 0'}}/>
+            <div className="flex items-center justify-between">
+              <span style={{fontSize:12,color:'var(--t3)'}}>Spent</span>
+              <span style={{fontSize:12,fontWeight:700,color:statusColor}}>{spentPct}%</span>
+            </div>
           </div>
         </div>
 
@@ -629,7 +702,7 @@ function Overview({ month, savings }: { month: MonthBudget; savings: SavingsData
           <div style={{display:'flex',flexDirection:'column',gap:12}}>
             {topCats.map(cat=>(
               <div key={cat.type} style={{display:'flex',alignItems:'center',gap:12}}>
-                <IconBadge Icon={catIcon(cat.type)} color={categoryColor(month,cat.type)}/>
+                <IconBadge Icon={catIcon(month, cat.type)} color={categoryColor(month,cat.type)}/>
                 <div style={{flex:1}}>
                   <div style={{display:'flex',justifyContent:'space-between',marginBottom:5}}>
                     <span style={{fontSize:13,fontWeight:600,color:'var(--t1)'}}>{cat.type}</span>
@@ -680,7 +753,7 @@ function VariableTab({ month, onAdd, onDelete }:{month:MonthBudget;onAdd:(e:Omit
             <div key={g.type}>
               <button className="tap w-full" onClick={()=>setExpanded(expanded===g.type?null:g.type)}>
                 <div style={{display:'flex',alignItems:'center',gap:12,padding:'10px 0'}}>
-                  <IconBadge Icon={catIcon(g.type)} color={categoryColor(month,g.type)}/>
+                  <IconBadge Icon={catIcon(month, g.type)} color={categoryColor(month,g.type)}/>
                   <div style={{flex:1,textAlign:'left'}}>
                     <div style={{display:'flex',justifyContent:'space-between',alignItems:'baseline',marginBottom:5}}>
                       <span style={{fontSize:13,fontWeight:600,color:'var(--t1)'}}>{g.type}</span>
@@ -730,7 +803,7 @@ function VariableTab({ month, onAdd, onDelete }:{month:MonthBudget;onAdd:(e:Omit
           <div style={{display:'flex',flexDirection:'column',gap:8}}>
             {recent.map(item=>(
               <div key={item.id} style={{display:'flex',alignItems:'center',gap:12}}>
-                <IconBadge Icon={catIcon(item.type)} color={categoryColor(month,item.type)}/>
+                <IconBadge Icon={catIcon(month, item.type)} color={categoryColor(month,item.type)}/>
                 <div style={{flex:1,minWidth:0}}>
                   <p style={{fontSize:13,fontWeight:600,color:'var(--t1)',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{item.name}</p>
                   <p style={{fontSize:11,color:'var(--t3)'}}>{item.type} · {item.date||'no date'}</p>
@@ -768,6 +841,34 @@ function FixedTab({month,onAdd,onDelete}:{month:MonthBudget;onAdd:(e:Omit<FixedE
           <PlusCircle size={15} weight="bold"/>Add
         </button>
       </div>
+      {(() => {
+        const cats = displayFixedCats(month).map(type=>{
+          const items=month.fixedExpenses.filter(e=>e.type===type)
+          const total=items.reduce((s,e)=>s+e.amount,0)
+          const base=month.fixedCategoryBases[type]??0
+          return {type,total,base,count:items.length}
+        }).filter(c=>c.count>0 || c.base>0)
+        if (!cats.length) return null
+        return (
+          <div className="glass" style={{padding:20}}>
+            <SectionHeader title="At a Glance"/>
+            <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:16}}>
+              {cats.map(c=>{
+                const left = c.base - c.total
+                return (
+                  <div key={c.type} className="flex flex-col items-center text-center">
+                    <IconBadge Icon={catIcon(month, c.type)} color={categoryColor(month,c.type)} size={46}/>
+                    <p style={{fontSize:11,fontWeight:700,color:'var(--t2)',marginTop:8,textTransform:'uppercase',letterSpacing:'0.04em'}}>{c.type}</p>
+                    <p className="num" style={{fontSize:12,fontWeight:700,marginTop:1,color:left<0?'var(--bad)':'var(--t3)'}}>
+                      {fmt(Math.abs(left))} {left<0?'over':'left'}
+                    </p>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        )
+      })()}
       {displayFixedCats(month).map(type=>{
         const items=month.fixedExpenses.filter(e=>e.type===type)
         if(!items.length)return null
@@ -776,7 +877,7 @@ function FixedTab({month,onAdd,onDelete}:{month:MonthBudget;onAdd:(e:Omit<FixedE
         return(
           <div key={type} className="glass" style={{padding:20}}>
             <div style={{display:'flex',alignItems:'center',gap:12,marginBottom:14}}>
-              <IconBadge Icon={catIcon(type)} color={categoryColor(month,type)}/>
+              <IconBadge Icon={catIcon(month, type)} color={categoryColor(month,type)}/>
               <div style={{flex:1}}>
                 <div style={{display:'flex',justifyContent:'space-between',alignItems:'baseline',marginBottom:5}}>
                   <span style={{fontSize:13,fontWeight:700,color:'var(--t1)'}}>{type}</span>
