@@ -7,8 +7,10 @@ import { saveMonth, subscribeMonth, getMonth, getSavings, saveSavings, subscribe
 import {
   emptyMonth, rolloverMonth, MonthBudget, VariableExpense, FixedExpense, SavingGoal, SavingsData, emptySavings,
   VARIABLE_TYPES, FIXED_TYPES, CAT_COLOR, MONEY_PLACES, MONEY_PLACE_LABEL, MoneyPlace,
+  MANAGEMENT_STRATEGIES,
   SAVING_SOURCES, SOURCE_TO_PLACE, withMoneyPlaceDelta, moneyPlaceAmount,
   displayVariableCats, displayFixedCats, categoryColor, nextPaletteColor,
+  transferBetweenPlaces, strategyEnvelopes, getStrategy, bucketOf,
 } from '@/lib/store'
 import { CAT_ICON, CAT_ICON_FALLBACK, ICON_BY_KEY, CUSTOM_ICON_CHOICES } from '@/lib/category-icons'
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, AreaChart, Area, XAxis } from 'recharts'
@@ -16,7 +18,7 @@ import {
   House, ChartBar, PiggyBank, Receipt, Gear, PlusCircle,
   Trash, Check, X, CaretRight, CaretDown, SignOut,
   Target, TrendUp, TrendDown, CaretLeft, Wallet, Bank,
-  Sliders, ArrowCircleUp,
+  Sliders, ArrowCircleUp, ArrowsDownUp,
 } from '@phosphor-icons/react/dist/ssr'
 import type { Icon } from '@phosphor-icons/react'
 import {
@@ -276,6 +278,81 @@ function AddFundsModal({ month, goal, onClose, onAdd }: { month: MonthBudget; go
     </Modal>
   )
 }
+/* ── Move money between places ── */
+// Income lands entirely in the bank, so this is how cash gets to Home or
+// Wallet. Always conserves the total - what leaves one place arrives in the
+// other, never created or destroyed.
+function MoveMoneyModal({ month, onClose, onMove }: { month: MonthBudget; onClose: () => void; onMove: (from: MoneyPlace, to: MoneyPlace, amount: number) => void }) {
+  const [from, setFrom] = useState<MoneyPlace>('bank')
+  const [to, setTo]     = useState<MoneyPlace>('wallet')
+  const [amount, setAmount] = useState('')
+  const amt = parseFloat(amount) || 0
+  const available = moneyPlaceAmount(month, from)
+  const insufficient = amt > available
+  const sameplace = from === to
+
+  function pickFrom(p: MoneyPlace) {
+    setFrom(p)
+    // Never let both sides be the same place - bump the destination.
+    if (p === to) setTo(MONEY_PLACES.find(x => x !== p)!)
+  }
+  function pickTo(p: MoneyPlace) {
+    setTo(p)
+    if (p === from) setFrom(MONEY_PLACES.find(x => x !== p)!)
+  }
+
+  const placeRow = (selected: MoneyPlace, onPick: (p: MoneyPlace) => void, disabled: MoneyPlace) => (
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8 }}>
+      {MONEY_PLACES.map(p => {
+        const Ico = MONEY_PLACE_ICON[p]
+        const on  = selected === p
+        const off = disabled === p
+        return (
+          <button key={p} onClick={() => onPick(p)} className="tap py-2.5 rounded-xl"
+            style={{ fontSize: 11, fontWeight: 700, opacity: off ? 0.4 : 1,
+              background: on ? 'var(--accent-tint)' : 'var(--surface-2)',
+              border: `1.5px solid ${on ? 'var(--accent)' : 'var(--border)'}`,
+              color: on ? 'var(--accent)' : 'var(--t2)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}>
+              <Ico size={13} weight="bold" />{MONEY_PLACE_LABEL[p]}
+            </div>
+            <div style={{ fontSize: 9, fontWeight: 600, color: 'var(--t3)', marginTop: 2 }}>{fmt(moneyPlaceAmount(month, p))}</div>
+          </button>
+        )
+      })}
+    </div>
+  )
+
+  return (
+    <Modal title="Move money" onClose={onClose}>
+      <div><FL label="From" />{placeRow(from, pickFrom, to)}</div>
+      <div style={{ display: 'flex', justifyContent: 'center', color: 'var(--t3)' }}>
+        <ArrowsDownUp size={16} weight="bold" />
+      </div>
+      <div><FL label="To" />{placeRow(to, pickTo, from)}</div>
+      <div>
+        <FL label="Amount (MAD)" />
+        <input className="field" type="number" placeholder="0" value={amount}
+          onChange={e => setAmount(e.target.value)} autoFocus />
+      </div>
+      <div style={{ display: 'flex', gap: 6 }}>
+        {[0.25, 0.5, 1].map(f => (
+          <button key={f} onClick={() => setAmount(String(Math.round(available * f)))} className="tap"
+            style={{ flex: 1, padding: '7px 0', borderRadius: 999, fontSize: 11, fontWeight: 700,
+              background: 'var(--surface-2)', border: '1px solid var(--border)', color: 'var(--t2)' }}>
+            {f === 1 ? 'All' : `${f * 100}%`}
+          </button>
+        ))}
+      </div>
+      {insufficient && <p style={{ fontSize: 11, color: 'var(--bad)' }}>Only {fmt(available)} MAD available in {MONEY_PLACE_LABEL[from]}.</p>}
+      <button className="btn-primary tap" disabled={!amt || insufficient || sameplace}
+        onClick={() => { onMove(from, to, amt); onClose() }}>
+        <ArrowsDownUp size={16} weight="bold" /> Move {amt > 0 ? `${fmt(amt)} MAD` : 'money'}
+      </button>
+    </Modal>
+  )
+}
+
 function SettingsModal({ month, user, onClose, onSave, onSignOut, onManageCategories }: { month: MonthBudget; user: any; onClose:()=>void; onSave:(p:Partial<MonthBudget>)=>void; onSignOut:()=>void; onManageCategories:()=>void }) {
   const [total,setTotal]=useState(String(month.totalBudget))
   const [bank,setBank]=useState(String(month.bankPart))
@@ -290,17 +367,22 @@ function SettingsModal({ month, user, onClose, onSave, onSignOut, onManageCatego
     Object.fromEntries(fixedCats.map(t=>[t,String(month.fixedCategoryBases[t]??0)]))
   )
   const [showCats,setShowCats]=useState(false)
+  const [strategyId,setStrategyId]=useState(month.strategyId ?? MANAGEMENT_STRATEGIES[0].id)
 
   function save() {
     const nextVarBases = { ...month.variableCategoryBases }
     varCats.forEach(t => { const v = parseFloat(varBases[t]); if (!isNaN(v)) nextVarBases[t] = v })
     const nextFixedBases = { ...month.fixedCategoryBases }
     fixedCats.forEach(t => { const v = parseFloat(fixedBases[t]); if (!isNaN(v)) nextFixedBases[t] = v })
+    const nextTotal = parseFloat(total) || month.totalBudget
     onSave({
-      totalBudget: parseFloat(total) || month.totalBudget,
+      totalBudget: nextTotal,
       bankPart: parseFloat(bank) || 0,
       homePart: parseFloat(home) || 0,
       walletPart: parseFloat(wallet) || 0,
+      strategyId,
+      // Keep the savings target in step with the strategy + income.
+      monthlySavingsTarget: strategyEnvelopes(nextTotal, strategyId).savings,
       variableCategoryBases: nextVarBases,
       fixedCategoryBases: nextFixedBases,
     })
@@ -328,6 +410,28 @@ function SettingsModal({ month, user, onClose, onSave, onSignOut, onManageCatego
           <div><FL label="Bank"/><input className="field" type="number" value={bank} onChange={e=>setBank(e.target.value)}/></div>
           <div><FL label="Home"/><input className="field" type="number" value={home} onChange={e=>setHome(e.target.value)}/></div>
           <div><FL label="Wallet"/><input className="field" type="number" value={wallet} onChange={e=>setWallet(e.target.value)}/></div>
+        </div>
+      </div>
+
+      <div><FL label="Budgeting strategy"/>
+        <div style={{display:'flex',flexDirection:'column',gap:6}}>
+          {MANAGEMENT_STRATEGIES.map(s=>{
+            const on = s.id===strategyId
+            const env = strategyEnvelopes(parseFloat(total)||month.totalBudget, s.id)
+            return (
+              <button key={s.id} onClick={()=>setStrategyId(s.id)} className="tap w-full"
+                style={{padding:'10px 12px',borderRadius:'var(--r-field)',textAlign:'left',
+                  background:on?'var(--accent-tint)':'var(--surface-2)',border:`1.5px solid ${on?'var(--accent)':'var(--border)'}`}}>
+                <div style={{display:'flex',alignItems:'center',gap:8}}>
+                  <span style={{flex:1,fontSize:12.5,fontWeight:700,color:'var(--t1)'}}>{s.name}</span>
+                  {on && <Check size={14} weight="bold" color="var(--accent)"/>}
+                </div>
+                <span style={{fontSize:10.5,color:'var(--t3)'}}>
+                  Needs {fmt(env.needs)} · Wants {fmt(env.wants)} · Savings {fmt(env.savings)}
+                </span>
+              </button>
+            )
+          })}
         </div>
       </div>
 
@@ -515,7 +619,7 @@ function ManageCategoriesModal({ month, onClose, onSave }: { month: MonthBudget;
 }
 
 /* ══════════════════════ OVERVIEW ══════════════════════ */
-function Overview({ month, savings }: { month: MonthBudget; savings: SavingsData }) {
+function Overview({ month, savings, onMoveMoney }: { month: MonthBudget; savings: SavingsData; onMoveMoney: () => void }) {
   const totalFixed = month.fixedExpenses.reduce((s,e)=>s+e.amount,0)
   const totalVar   = month.variableExpenses.reduce((s,e)=>s+e.amount,0)
   // Saving goals are global - their `current` balance is a lifetime total,
@@ -531,6 +635,24 @@ function Overview({ month, savings }: { month: MonthBudget; savings: SavingsData
 
   const statusColor = spentPct>=95?'var(--bad)':spentPct>=75?'var(--warn)':'var(--good)'
   const statusLabel = spentPct>=95?'Over budget':spentPct>=75?'Watch spending':'On track'
+
+  // Strategy envelopes: what the chosen budgeting method says this income
+  // should be split into, measured against what's actually been spent.
+  // Needs/wants are resolved per category via SPEND_BUCKET, so a category's
+  // bucket - not where the cash sits - decides which envelope it draws from.
+  const strategy  = getStrategy(month.strategyId)
+  const envelopes = strategyEnvelopes(month.totalBudget, month.strategyId)
+  const spentIn = (bucket: 'needs'|'wants') => {
+    const v = month.variableExpenses.filter(e=>bucketOf(e.type,'variable')===bucket).reduce((s,e)=>s+e.amount,0)
+    const f = month.fixedExpenses.filter(e=>bucketOf(e.type,'fixed')===bucket).reduce((s,e)=>s+e.amount,0)
+    return v + f
+  }
+  const savingsTarget = month.monthlySavingsTarget ?? envelopes.savings
+  const envelopeRows = [
+    { label:'Needs',   hint:'essentials',   spent: spentIn('needs'), budget: envelopes.needs, color:'var(--accent-dim)' },
+    { label:'Wants',   hint:'lifestyle',    spent: spentIn('wants'), budget: envelopes.wants, color:'var(--accent)' },
+    { label:'Savings', hint:'set aside',    spent: totalSaved,       budget: savingsTarget,   color:'var(--good)' },
+  ]
 
   const pieData = [
     {name:'Fixed',value:totalFixed,color:'var(--accent-dim)'},
@@ -602,6 +724,14 @@ function Overview({ month, savings }: { month: MonthBudget; savings: SavingsData
           </div>
         </div>
 
+        <div className="relative flex items-center justify-between" style={{marginBottom:8}}>
+          <p style={{fontSize:11,fontWeight:700,color:'var(--t3)',textTransform:'uppercase',letterSpacing:'0.07em'}}>Where your money is</p>
+          <button onClick={onMoveMoney} className="tap"
+            style={{display:'flex',alignItems:'center',gap:5,padding:'5px 11px',borderRadius:999,fontSize:11,fontWeight:700,
+              background:'var(--surface-2)',border:'1px solid var(--border-2)',color:'var(--t1)'}}>
+            <ArrowsDownUp size={12} weight="bold"/> Move money
+          </button>
+        </div>
         <div className="relative" style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:10}}>
           {MONEY_PLACES.map(p=>{
             const Ico = MONEY_PLACE_ICON[p]
@@ -615,6 +745,33 @@ function Overview({ month, savings }: { month: MonthBudget; savings: SavingsData
                   <p style={{fontSize:11,color:'var(--t3)',fontWeight:600}}>{MONEY_PLACE_LABEL[p]}</p>
                 </div>
                 <p className="f-display num" style={{fontSize:17,fontWeight:700,color:'var(--t1)'}}>{fmt(moneyPlaceAmount(month,p))}</p>
+              </div>
+            )
+          })}
+        </div>
+      </div>
+
+      {/* Strategy envelopes - needs / wants / savings, the actual budgeting plan */}
+      <div className="glass" style={{padding:20}}>
+        <SectionHeader title="Budget Plan" action={<Chip label={strategy.name} color="var(--accent)"/>}/>
+        <div style={{display:'flex',flexDirection:'column',gap:14}}>
+          {envelopeRows.map(row=>{
+            const p = pct(row.spent, row.budget)
+            const over = row.spent > row.budget && row.budget > 0
+            return (
+              <div key={row.label}>
+                <div style={{display:'flex',justifyContent:'space-between',alignItems:'baseline',marginBottom:5}}>
+                  <div style={{display:'flex',alignItems:'center',gap:6}}>
+                    <div style={{width:7,height:7,borderRadius:'50%',background:row.color}}/>
+                    <span style={{fontSize:12,fontWeight:600,color:'var(--t1)'}}>{row.label}</span>
+                    <span style={{fontSize:10,color:'var(--t3)'}}>{row.hint}</span>
+                  </div>
+                  <div>
+                    <span className="num" style={{fontSize:12.5,fontWeight:700,color:over?'var(--bad)':'var(--t1)'}}>{fmt(row.spent)}</span>
+                    <span style={{fontSize:11,color:'var(--t3)'}}> / {fmt(row.budget)}</span>
+                  </div>
+                </div>
+                <PBar value={p} color={row.color} h={5}/>
               </div>
             )
           })}
@@ -1020,6 +1177,7 @@ export default function Dashboard() {
   const [tab, setTab] = useState<Tab>('overview')
   const [showSettings, setShowSettings] = useState(false)
   const [showCategories, setShowCategories] = useState(false)
+  const [showMoveMoney, setShowMoveMoney] = useState(false)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
 
@@ -1141,6 +1299,14 @@ export default function Dashboard() {
     persistSavings({ goals: savings.goals.map(g => g.id===id ? {...g, current: g.current+amount, active: true} : g) })
   }
 
+  // Moving cash never changes the totals - it only relocates it, so there's
+  // no budget recalculation to do here.
+  const moveMoney = (from: MoneyPlace, to: MoneyPlace, amount: number) => {
+    if (!month) return
+    const patch = transferBetweenPlaces(month, from, to, amount)
+    if (Object.keys(patch).length) persist({ ...month, ...patch })
+  }
+
   async function handleSignOut() {
     await signOut()
     router.replace('/login')
@@ -1250,7 +1416,7 @@ export default function Dashboard() {
         <div className="flex-1 overflow-y-auto px-4 pt-4 pb-28 md:px-8 md:pt-6 md:pb-10">
           <div className="md:max-w-5xl md:mx-auto">
             {error && <div className="banner banner-error fade-in" style={{marginBottom:16}}>{error}</div>}
-            {tab==='overview' && <Overview month={month} savings={savings}/>}
+            {tab==='overview' && <Overview month={month} savings={savings} onMoveMoney={()=>setShowMoveMoney(true)}/>}
             {tab==='variable' && <VariableTab month={month} onAdd={addVariable} onDelete={delVariable}/>}
             {tab==='fixed'    && <FixedTab month={month} onAdd={addFixed} onDelete={delFixed}/>}
             {tab==='savings'  && <SavingsTab month={month} savings={savings} onAdd={addSaving} onDelete={delSaving} onToggle={toggleSaving} onTopUp={topUpSaving}/>}
@@ -1276,6 +1442,7 @@ export default function Dashboard() {
 
       {showSettings&&<SettingsModal month={month} user={user} onClose={()=>setShowSettings(false)} onSave={p=>updateMonth(p)} onSignOut={handleSignOut} onManageCategories={()=>{setShowSettings(false);setShowCategories(true)}}/>}
       {showCategories&&<ManageCategoriesModal month={month} onClose={()=>setShowCategories(false)} onSave={p=>updateMonth(p)}/>}
+      {showMoveMoney&&<MoveMoneyModal month={month} onClose={()=>setShowMoveMoney(false)} onMove={moveMoney}/>}
     </div>
   )
 }
