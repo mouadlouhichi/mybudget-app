@@ -114,9 +114,7 @@ function Dashboard() {
     return () => unsub()
   }, [user, profile, monthId])
 
-  // Saving goals are global - subscribed once per session. On first load
-  // after the upgrade there's no global doc yet, so migrate from whatever
-  // goals lived on the most recently viewed month (old per-month storage).
+  // Saving goals are global - subscribed once per session.
   useEffect(() => {
     if (!user) return
     if (profile && !profile.onboardingComplete) return
@@ -138,9 +136,7 @@ function Dashboard() {
     return () => unsub()
   }, [user, profile])
 
-  // Optimistic write with rollback (M6): remember the previous state and
-  // restore it if Firestore rejects, so the UI never keeps a value the
-  // server refused.
+  // Optimistic write with rollback (M6)
   const persist = useCallback(async (updated: MonthBudget) => {
     if (!user) return
     const previous = monthRef.current
@@ -273,8 +269,6 @@ function Dashboard() {
     }
   }
 
-  // Deleting a funded goal returns the money to its place instead of
-  // vaporising it (B2).
   const deleteGoal = async (goal: SavingGoal) => {
     if (!month || !savings) return
     const ok = await confirm({
@@ -304,7 +298,6 @@ function Dashboard() {
     })
   }
 
-  // Withdrawing returns money to a place and lowers the goal (B3).
   const goalWithdraw = (goal: SavingGoal, amount: number, place: MoneyPlace) => {
     if (!month || !savings) return
     const r = withdrawFromGoal(month, goal, place, amount)
@@ -392,106 +385,100 @@ function Dashboard() {
     )
   }
 
-  const tabs: { id: Tab; label: string; Icon: Icon }[] = [
-    { id: 'overview', label: 'Overview', Icon: House },
-    { id: 'variable', label: 'Expenses', Icon: ChartBar },
-    { id: 'fixed', label: 'Fixed', Icon: Receipt },
-    { id: 'savings', label: 'Savings', Icon: PiggyBank },
-  ]
-  const mobileTabs: { id: Tab; label: string; Icon: LucideIcon }[] = [
-    { id: 'overview', label: 'Overview', Icon: LucideHome },
-    { id: 'variable', label: 'Expenses', Icon: LucideWallet },
-    { id: 'fixed', label: 'Fixed', Icon: LucideReceipt },
-    { id: 'savings', label: 'Savings', Icon: LucidePiggyBank },
+  const tabs: { id: Tab; label: string }[] = [
+    { id: 'overview', label: 'Overview' },
+    { id: 'fixed', label: 'Fixed' },
+    { id: 'variable', label: 'Variable' },
+    { id: 'savings', label: 'Savings' },
   ]
 
   return (
-    <div className="min-h-screen md:flex" style={{ background: 'var(--bg)' }}>
-      {/* Desktop sidebar */}
-      <aside
-        className="hidden md:flex md:flex-col md:w-64 md:shrink-0 md:sticky md:top-0 md:h-screen"
-        style={{ borderRight: '1px solid var(--border)', background: 'var(--surface)' }}
+    <div className="min-h-screen" style={{ background: 'var(--bg)' }}>
+      {/* Desktop Sidebar/Nav (Hidden on Mobile) */}
+      <nav
+        className="hidden md:flex flex-col fixed left-0 top-0 h-full w-64 bg-surface border-r border-border z-50 pt-8 px-4"
+        style={{ background: 'var(--surface)', borderRight: '1px solid var(--border)' }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '22px 22px 18px' }}>
-          <div style={{ width: 34, height: 34, borderRadius: 10, background: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <Wallet size={17} weight="bold" color="var(--accent-ink)" />
-          </div>
-          <span className="f-display" style={{ fontSize: 17, fontWeight: 700, color: 'var(--t1)' }}>Flousy</span>
+        <div className="font-headline-lg text-headline-lg font-bold text-primary mb-12 px-4 flex items-center gap-3">
+          <span className="material-symbols-outlined text-3xl" style={{ fontVariationSettings: '"FILL" 1' }}>account_balance_wallet</span>
+          <span>Flousy</span>
         </div>
-        <nav aria-label="Sections" style={{ display: 'flex', flexDirection: 'column', gap: 2, padding: '0 12px' }}>
+        <div className="flex flex-col gap-2">
           {tabs.map(t => {
             const active = tab === t.id
+            const iconName = t.id === 'overview' ? 'dashboard' : t.id === 'variable' ? 'shopping_cart' : t.id === 'fixed' ? 'event_repeat' : 'savings'
             return (
               <button
-                key={t.id} onClick={() => setTab(t.id)} className="tap" aria-current={active ? 'page' : undefined}
+                key={t.id}
+                onClick={() => setTab(t.id)}
+                className={`flex items-center gap-4 px-4 py-3 rounded-xl transition-all font-bold text-sm text-left tap ${
+                  active
+                    ? 'bg-accent text-on-primary font-bold shadow-md'
+                    : 'text-t2 hover:bg-surface-2'
+                }`}
                 style={{
-                  display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 12,
-                  color: active ? 'var(--t1)' : 'var(--t2)',
-                  background: active ? 'var(--accent-tint)' : 'transparent',
-                  fontWeight: 700, fontSize: 13, textAlign: 'left',
+                  background: active ? 'var(--accent)' : 'transparent',
+                  color: active ? 'var(--accent-ink)' : 'var(--t2)',
                 }}
               >
-                <t.Icon size={17} weight={active ? 'fill' : 'regular'} />{t.label}
+                <span className="material-symbols-outlined" style={{ fontVariationSettings: active ? '"FILL" 1' : '"FILL" 0' }}>
+                  {iconName}
+                </span>
+                {t.label}
               </button>
             )
           })}
-        </nav>
+        </div>
         <div style={{ flex: 1 }} />
-        <div style={{ padding: 12, display: 'flex', flexDirection: 'column', gap: 2 }}>
+        <div className="flex flex-col gap-2 pb-6">
           <button
-            onClick={() => setShowSettings(true)} className="tap"
-            style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 12, color: 'var(--t2)', fontWeight: 700, fontSize: 13, textAlign: 'left' }}
+            onClick={() => setShowSettings(true)}
+            className="flex items-center gap-4 px-4 py-3 rounded-xl text-t2 hover:bg-surface-2 transition-colors text-sm font-bold text-left tap"
           >
-            <Gear size={17} />Settings
+            <span className="material-symbols-outlined">settings</span>
+            Settings
           </button>
           <button
-            onClick={handleSignOut} className="tap"
-            style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 12, color: 'var(--t2)', fontWeight: 700, fontSize: 13, textAlign: 'left' }}
+            onClick={handleSignOut}
+            className="flex items-center gap-4 px-4 py-3 rounded-xl text-t2 hover:bg-surface-2 transition-colors text-sm font-bold text-left tap"
           >
-            <SignOut size={17} />Sign out
+            <span className="material-symbols-outlined">logout</span>
+            Sign out
           </button>
         </div>
-      </aside>
+      </nav>
 
-      <div className="flex flex-col flex-1 min-w-0 max-w-md md:max-w-none mx-auto md:mx-0" style={{ background: 'var(--bg)' }}>
-        {/* Top bar */}
-        <div
-          className="safe-top sticky top-0 z-40 md:static"
-          style={{ background: 'var(--chrome)', backdropFilter: 'blur(20px)', borderBottom: '1px solid var(--border)' }}
+      {/* Main Content Area */}
+      <div className="flex flex-col min-h-screen md:pl-64" style={{ background: 'var(--bg)' }}>
+        {/* Mobile Top App Bar */}
+        <header
+          className="safe-top sticky top-0 z-40 bg-surface flex justify-between items-center px-4 h-16 border-b border-border md:hidden"
+          style={{ background: 'var(--chrome)', backdropFilter: 'blur(20px)' }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 20px' }} className="md:px-8 md:py-4">
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <button
-                className="tap" onClick={() => setMonthId(prevMonth(monthId))} aria-label="Previous month"
-                style={{ width: 32, height: 32, borderRadius: 10, background: 'var(--surface-2)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-              >
-                <CaretLeft size={15} color="var(--t2)" />
-              </button>
-              <div style={{ textAlign: 'center' }}>
-                <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--t3)', textTransform: 'uppercase', letterSpacing: '0.07em' }}>Budget</p>
-                <h1 className="f-display" style={{ fontSize: 16, fontWeight: 700, color: 'var(--t1)', lineHeight: 1.1 }}>{month.label}</h1>
-              </div>
-              <button
-                className="tap" onClick={() => setMonthId(nextMonth(monthId))} aria-label="Next month"
-                style={{ width: 32, height: 32, borderRadius: 10, background: 'var(--surface-2)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-              >
-                <CaretRight size={15} color="var(--t2)" />
-              </button>
-            </div>
-
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              {saving && <div className="w-2 h-2 rounded-full" style={{ background: 'var(--accent)' }} aria-label="Saving" role="status" />}
-              <button
-                onClick={() => setShowSettings(true)} className="tap md:hidden" aria-label="Settings"
-                style={{ width: 36, height: 36, borderRadius: 12, background: 'var(--surface-2)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-              >
-                <Gear size={16} color="var(--t2)" />
-              </button>
-            </div>
+          <button
+            onClick={() => setMonthId(prevMonth(monthId))}
+            aria-label="Previous month"
+            className="text-t2 hover:bg-surface-2 transition-opacity flex items-center justify-center p-2 rounded-full tap"
+          >
+            <span className="material-symbols-outlined">chevron_left</span>
+          </button>
+          <div className="text-center">
+            <p className="text-[10px] font-bold text-t3 uppercase tracking-widest">Budget</p>
+            <h1 className="font-headline-md text-headline-md font-bold text-primary">{month.label}</h1>
           </div>
-        </div>
+          <div className="flex items-center gap-1">
+            {saving && <div className="w-1.5 h-1.5 rounded-full bg-accent animate-ping mr-1" />}
+            <button
+              onClick={() => setShowSettings(true)}
+              aria-label="Settings"
+              className="text-t2 hover:bg-surface-2 transition-opacity flex items-center justify-center p-2 rounded-full tap"
+            >
+              <span className="material-symbols-outlined">account_circle</span>
+            </button>
+          </div>
+        </header>
 
-        {/* Content */}
+        {/* Dynamic Content Views */}
         <main className="flex-1 overflow-y-auto px-4 pt-4 pb-28 md:px-8 md:pt-6 md:pb-10">
           <div className="md:max-w-5xl md:mx-auto">
             {error && <div className="banner banner-error fade-in" role="alert" style={{ marginBottom: 16 }}>{error}</div>}
@@ -526,31 +513,49 @@ function Dashboard() {
           </div>
         </main>
 
-        {/* Mobile bottom nav */}
+        {/* Mobile Glass Bottom Navigation Bar */}
         <nav
           aria-label="Sections"
-          className="safe-bottom fixed bottom-4 left-1/2 -translate-x-1/2 w-full max-w-md z-40 md:hidden"
-          style={{ background: 'var(--chrome-strong)', backdropFilter: 'blur(24px)', borderTop: '1px solid var(--border)' }}
+          className="safe-bottom fixed bottom-6 left-4 right-4 z-50 flex justify-around items-center px-4 py-2 bg-surface/80 backdrop-blur-md shadow-lg border border-border-2 rounded-full md:hidden"
+          style={{ background: 'var(--chrome-strong)', backdropFilter: 'blur(24px)' }}
         >
-          <div style={{ display: 'flex', padding: '2px 12px' }}>
-            {mobileTabs.map(t => {
-              const active = tab === t.id
-              return (
-                <button
-                  key={t.id} onClick={() => setTab(t.id)} className="tap" aria-label={t.label}
-                  aria-current={active ? 'page' : undefined}
-                  style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '12px 0', background: 'transparent', border: 'none' }}
+          {tabs.map(t => {
+            const active = tab === t.id
+            const iconName = t.id === 'overview' ? 'dashboard' : t.id === 'variable' ? 'shopping_cart' : t.id === 'fixed' ? 'event_repeat' : 'savings'
+            return (
+              <button
+                key={t.id}
+                onClick={() => setTab(t.id)}
+                aria-label={t.label}
+                aria-current={active ? 'page' : undefined}
+                className={`flex flex-col items-center justify-center p-2 rounded-2xl transition-all tap ${
+                  active ? 'bg-primary/10 text-primary font-bold w-16' : 'text-t3 hover:bg-surface-2/40 w-16'
+                }`}
+                style={{
+                  color: active ? 'var(--accent)' : 'var(--t3)',
+                  background: active ? 'var(--accent-tint)' : 'transparent',
+                }}
+              >
+                <span
+                  className="material-symbols-outlined text-[24px]"
+                  style={{ fontVariationSettings: active ? '"FILL" 1, "wght" 600' : '"FILL" 0, "wght" 400' }}
                 >
-                  <t.Icon
-                    size={26} strokeWidth={active ? 2.25 : 1.6}
-                    color={active ? 'var(--t1)' : 'var(--t3)'}
-                    fill={active ? 'var(--t1)' : 'none'} fillOpacity={active ? 0.12 : 0}
-                  />
-                </button>
-              )
-            })}
-          </div>
+                  {iconName}
+                </span>
+              </button>
+            )
+          })}
         </nav>
+
+        {/* Floating Action Button (FAB) */}
+        <button
+          onClick={() => setExpenseModal({ open: true, edit: null })}
+          className="fixed bottom-24 right-4 md:bottom-8 md:right-8 w-14 h-14 bg-primary text-on-primary rounded-xl flex items-center justify-center shadow-[0_8px_24px_rgba(0,0,0,0.12)] hover:bg-opacity-90 transition-all z-40 tap hover:scale-105 active:scale-95 duration-200"
+          style={{ background: 'var(--accent)', color: 'var(--accent-ink)', borderRadius: '16px' }}
+          aria-label="Add transaction"
+        >
+          <span className="material-symbols-outlined text-[28px] font-bold">add</span>
+        </button>
       </div>
 
       {/* Modals */}

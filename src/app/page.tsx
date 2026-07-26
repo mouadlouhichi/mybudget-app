@@ -4,13 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useAuth } from '@/lib/auth-context'
-import {
-  Wallet, ArrowRight, ChartPieSlice, PiggyBank, ShieldCheck, DeviceMobile,
-} from '@phosphor-icons/react/dist/ssr'
 
-// Signed-in users go straight to the dashboard. Everyone else gets a real
-// landing page explaining the product rather than an immediate redirect to
-// a login form.
 export default function Home() {
   const { user, loading } = useAuth()
   const router = useRouter()
@@ -24,7 +18,7 @@ export default function Home() {
 
   if (!checked) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--bg)' }}>
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <div
           className="w-10 h-10 rounded-full border-2 border-t-transparent animate-spin"
           style={{ borderColor: 'var(--accent)', borderTopColor: 'transparent' }}
@@ -34,90 +28,93 @@ export default function Home() {
     )
   }
 
-  const features = [
-    { Icon: ChartPieSlice, title: 'A plan, not just a log', body: 'Pick a strategy like 50/30/20 and your income is split into needs, wants and savings envelopes automatically.' },
-    { Icon: Wallet, title: 'Know where your cash is', body: 'Track money across bank, home and wallet. Every expense comes out of a real place, so the balances always match reality.' },
-    { Icon: PiggyBank, title: 'Goals that actually move', body: 'Fund a goal and the money leaves your account. Withdraw and it comes back. No make-believe totals.' },
-    { Icon: ShieldCheck, title: 'Private by default', body: 'Your data is yours alone, never sold or shared. Export it as CSV or delete everything, any time.' },
-  ]
-
   return (
-    <div className="min-h-screen" style={{ background: 'var(--bg)' }}>
-      <header style={{ maxWidth: 1000, margin: '0 auto', padding: '20px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <div style={{ width: 32, height: 32, borderRadius: 10, background: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <Wallet size={16} weight="bold" color="var(--accent-ink)" />
+    <div className="bg-background text-on-background min-h-screen flex flex-col font-body-md antialiased selection:bg-primary/20 selection:text-primary">
+      {/* Main Content Canvas */}
+      <main className="flex-grow flex flex-col justify-center items-center px-4 md:px-12 py-10">
+        <div className="max-w-3xl w-full text-center flex flex-col items-center gap-6">
+          {/* Brand Element */}
+          <div className="flex flex-col items-center gap-2">
+            <div className="w-20 h-20 bg-[#008378] rounded-3xl flex items-center justify-center shadow-[0_8px_24px_rgba(0,131,120,0.15)] mb-4">
+              <span className="material-symbols-outlined text-[48px] text-white" style={{ fontVariationSettings: "'FILL' 1" }}>
+                account_balance_wallet
+              </span>
+            </div>
+            <h1 className="text-3xl md:text-4xl font-extrabold text-primary tracking-tight">
+              Flousy
+            </h1>
+            <p className="text-base text-t2 max-w-md mx-auto leading-relaxed mt-2">
+              Separate what money is <em>for</em> from where it actually <em>is</em>.
+            </p>
           </div>
-          <span className="f-display" style={{ fontSize: 17, fontWeight: 700, color: 'var(--t1)' }}>Flousy</span>
-        </div>
-        <Link
-          href="/login"
-          style={{ fontSize: 13, fontWeight: 700, color: 'var(--t1)', textDecoration: 'none', padding: '8px 16px', borderRadius: 999, border: '1px solid var(--border-2)' }}
-        >
-          Sign in
-        </Link>
-      </header>
 
-      <main style={{ maxWidth: 1000, margin: '0 auto', padding: '0 24px 80px' }}>
-        {/* Hero */}
-        <section style={{ textAlign: 'center', padding: '56px 0 44px' }} className="slide-up">
-          <div
-            className="inline-flex items-center gap-2"
-            style={{ padding: '5px 13px', borderRadius: 999, background: 'var(--accent-tint)', marginBottom: 20 }}
-          >
-            <DeviceMobile size={13} weight="bold" color="var(--accent-dim)" />
-            <span style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--accent-dim)' }}>Installs like an app</span>
+          {/* Features Bento Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full mt-8">
+            {/* Feature 1 */}
+            <div className="bg-surface p-6 rounded-[24px] border border-border shadow-[0_4px_20px_rgba(0,0,0,0.04)] flex flex-col items-center text-center gap-3 transition-transform hover:-translate-y-1 duration-300">
+              <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center text-primary">
+                <span className="material-symbols-outlined text-[24px]" style={{ fontVariationSettings: "'FILL' 0" }}>
+                  mail
+                </span>
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-t1 mb-1">Budget Envelopes</h3>
+                <p className="text-xs text-t2">Categorize into Needs, Wants, and Savings with absolute precision.</p>
+              </div>
+            </div>
+
+            {/* Feature 2 */}
+            <div className="bg-surface p-6 rounded-[24px] border border-border shadow-[0_4px_20px_rgba(0,0,0,0.04)] flex flex-col items-center text-center gap-3 transition-transform hover:-translate-y-1 duration-300">
+              <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center text-primary">
+                <span className="material-symbols-outlined text-[24px]" style={{ fontVariationSettings: "'FILL' 0" }}>
+                  account_balance
+                </span>
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-t1 mb-1">Money Places</h3>
+                <p className="text-xs text-t2">Track exactly where your cash lives: Bank, Home, or Wallet.</p>
+              </div>
+            </div>
+
+            {/* Feature 3 */}
+            <div className="bg-surface p-6 rounded-[24px] border border-border shadow-[0_4px_20px_rgba(0,0,0,0.04)] flex flex-col items-center text-center gap-3 transition-transform hover:-translate-y-1 duration-300">
+              <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center text-primary">
+                <span className="material-symbols-outlined text-[24px]" style={{ fontVariationSettings: "'FILL' 0" }}>
+                  flag
+                </span>
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-t1 mb-1">Savings Goals</h3>
+                <p className="text-xs text-t2">Set clear milestones and watch your progress grow safely.</p>
+              </div>
+            </div>
           </div>
-          <h1 className="f-display" style={{ fontSize: 'clamp(32px, 6vw, 52px)', fontWeight: 700, color: 'var(--t1)', lineHeight: 1.1, letterSpacing: '-0.02em' }}>
-            Track every dirham,<br />hit every goal.
-          </h1>
-          <p style={{ fontSize: 16, color: 'var(--t2)', maxWidth: 520, margin: '18px auto 30px', lineHeight: 1.6 }}>
-            A private, mobile-first budget tracker that knows the difference between what your money is
-            <em> for</em> and where it actually <em>is</em>.
-          </p>
-          <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
-            <Link href="/login" className="btn-primary tap" style={{ width: 'auto', padding: '14px 28px', textDecoration: 'none' }}>
-              Start free <ArrowRight size={16} weight="bold" />
+
+          {/* CTA Actions */}
+          <div className="flex flex-col sm:flex-row gap-4 mt-8 w-full max-w-sm justify-center">
+            <Link
+              href="/login"
+              className="bg-primary hover:opacity-95 text-white font-bold py-3.5 px-8 rounded-full shadow-[0_4px_12px_rgba(0,104,95,0.2)] transition-all duration-200 active:scale-95 text-center flex-1"
+              style={{ background: 'var(--accent)', color: 'var(--accent-ink)' }}
+            >
+              Get Started
+            </Link>
+            <Link
+              href="/login"
+              className="bg-transparent border border-border hover:bg-surface-2 text-t1 font-bold py-3.5 px-8 rounded-full transition-all duration-200 active:scale-95 text-center flex-1"
+            >
+              Log In
             </Link>
           </div>
-          <p style={{ fontSize: 12, color: 'var(--t3)', marginTop: 14 }}>Free to use · No card required · No bank connection</p>
-        </section>
-
-        {/* Features */}
-        <section style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 16, marginBottom: 56 }}>
-          {features.map(f => (
-            <div key={f.title} className="glass" style={{ padding: 22 }}>
-              <div
-                style={{ width: 38, height: 38, borderRadius: 12, background: 'var(--accent-tint)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 12 }}
-              >
-                <f.Icon size={19} weight="bold" color="var(--accent-dim)" />
-              </div>
-              <h2 className="f-display" style={{ fontSize: 15, fontWeight: 700, color: 'var(--t1)', marginBottom: 6 }}>{f.title}</h2>
-              <p style={{ fontSize: 13.5, color: 'var(--t2)', lineHeight: 1.6 }}>{f.body}</p>
-            </div>
-          ))}
-        </section>
-
-        {/* CTA */}
-        <section className="glass" style={{ padding: 36, textAlign: 'center' }}>
-          <h2 className="f-display" style={{ fontSize: 22, fontWeight: 700, color: 'var(--t1)', marginBottom: 8 }}>
-            Get your month under control
-          </h2>
-          <p style={{ fontSize: 14, color: 'var(--t2)', maxWidth: 420, margin: '0 auto 22px', lineHeight: 1.6 }}>
-            Set up your budget in about a minute. Everything stays private to your account.
-          </p>
-          <Link href="/login" className="btn-primary tap" style={{ width: 'auto', padding: '14px 28px', textDecoration: 'none', display: 'inline-flex' }}>
-            Create your budget <ArrowRight size={16} weight="bold" />
-          </Link>
-        </section>
+        </div>
       </main>
 
-      <footer style={{ borderTop: '1px solid var(--border)', padding: '24px', textAlign: 'center' }}>
-        <div style={{ display: 'flex', gap: 20, justifyContent: 'center', flexWrap: 'wrap', marginBottom: 10 }}>
-          <Link href="/privacy" style={{ fontSize: 12.5, color: 'var(--t2)', textDecoration: 'none' }}>Privacy</Link>
-          <Link href="/terms" style={{ fontSize: 12.5, color: 'var(--t2)', textDecoration: 'none' }}>Terms</Link>
+      <footer className="border-t border-border py-6 text-center">
+        <div className="flex gap-6 justify-center flex-wrap mb-2">
+          <Link href="/privacy" className="text-xs text-t2 hover:underline">Privacy</Link>
+          <Link href="/terms" className="text-xs text-t2 hover:underline">Terms</Link>
         </div>
-        <p style={{ fontSize: 11.5, color: 'var(--t3)' }}>© {new Date().getFullYear()} Flousy</p>
+        <p className="text-[10px] text-t3">© {new Date().getFullYear()} Flousy</p>
       </footer>
     </div>
   )
