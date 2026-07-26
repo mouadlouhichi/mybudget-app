@@ -44,6 +44,27 @@ export function FixedModal({
 
   return (
     <Modal title={editing ? 'Edit fixed charge' : 'New fixed charge'} onClose={onClose}>
+      {/* Centered Actual Amount Input */}
+      <div className="flex flex-col items-center justify-center py-3 border-b border-border mb-4">
+        <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--t3)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 4 }}>
+          Actual Amount Paid ({symbol})
+        </p>
+        <div className="flex items-center text-primary font-bold">
+          <span className="text-3xl mr-1 text-accent">{symbol}</span>
+          <input
+            className="bg-transparent border-none text-[44px] leading-tight text-center w-full max-w-[220px] text-t1 focus:ring-0 p-0 placeholder-text-muted focus:outline-none font-bold"
+            placeholder="0.00"
+            type="number"
+            inputMode="decimal"
+            value={amount}
+            onChange={e => { setAmount(e.target.value); if (errors.amount) setErrors(prev => ({ ...prev, amount: '' })) }}
+            aria-invalid={!!errors.amount}
+            autoFocus
+          />
+        </div>
+        <FieldError msg={errors.amount} />
+      </div>
+
       <div>
         <FL label="Type" />
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8 }}>
@@ -53,7 +74,7 @@ export function FixedModal({
             const on = type === t
             return (
               <button
-                key={t} onClick={() => setType(t)} aria-pressed={on}
+                key={t} type="button" onClick={() => setType(t)} aria-pressed={on}
                 className="tap flex items-center gap-2 px-3 py-2.5 rounded-xl"
                 style={{ background: on ? c + '22' : 'var(--surface-2)', border: `1.5px solid ${on ? c : 'var(--border)'}` }}
               >
@@ -70,28 +91,18 @@ export function FixedModal({
         <FL label="Name" />
         <input
           className="field" placeholder="e.g. Electricity" value={name}
-          onChange={e => setName(e.target.value)} autoFocus aria-invalid={!!errors.name}
+          onChange={e => setName(e.target.value)} aria-invalid={!!errors.name}
         />
         <FieldError msg={errors.name} />
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-        <div>
-          <FL label={`Actual (${symbol})`} />
-          <input
-            className="field" type="number" inputMode="decimal" placeholder="0" value={amount}
-            onChange={e => setAmount(e.target.value)} aria-invalid={!!errors.amount}
-          />
-          <FieldError msg={errors.amount} />
-        </div>
-        <div>
-          <FL label={`Budget (${symbol})`} />
-          <input
-            className="field" type="number" inputMode="decimal" placeholder="0" value={base}
-            onChange={e => setBase(e.target.value)} aria-invalid={!!errors.base}
-          />
-          <FieldError msg={errors.base} />
-        </div>
+      <div>
+        <FL label={`Budget Amount (${symbol})`} />
+        <input
+          className="field" type="number" inputMode="decimal" placeholder="0" value={base}
+          onChange={e => setBase(e.target.value)} aria-invalid={!!errors.base}
+        />
+        <FieldError msg={errors.base} />
       </div>
 
       <div>

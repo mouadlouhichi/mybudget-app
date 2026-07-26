@@ -76,20 +76,32 @@ export function MoveMoneyModal({
 
   return (
     <Modal title="Move money" onClose={onClose}>
+      {/* Centered Amount Input */}
+      <div className="flex flex-col items-center justify-center py-3 border-b border-border mb-4">
+        <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--t3)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 4 }}>
+          Amount ({symbol})
+        </p>
+        <div className="flex items-center text-primary font-bold">
+          <span className="text-3xl mr-1 text-accent">{symbol}</span>
+          <input
+            className="bg-transparent border-none text-[44px] leading-tight text-center w-full max-w-[220px] text-t1 focus:ring-0 p-0 placeholder-text-muted focus:outline-none font-bold"
+            placeholder="0.00"
+            type="number"
+            inputMode="decimal"
+            value={amount}
+            onChange={e => { setAmount(e.target.value); setError('') }}
+            aria-invalid={!!error}
+            autoFocus
+          />
+        </div>
+        <FieldError msg={error} />
+      </div>
+
       <div><FL label="From" />{placeRow(from, pickFrom, to)}</div>
       <div aria-hidden style={{ display: 'flex', justifyContent: 'center', color: 'var(--t3)' }}>
         <ArrowsDownUp size={16} weight="bold" />
       </div>
       <div><FL label="To" />{placeRow(to, pickTo, from)}</div>
-
-      <div>
-        <FL label={`Amount (${symbol})`} />
-        <input
-          className="field" type="number" inputMode="decimal" placeholder="0" value={amount}
-          onChange={e => { setAmount(e.target.value); setError('') }} autoFocus aria-invalid={!!error}
-        />
-        <FieldError msg={error} />
-      </div>
 
       <div style={{ display: 'flex', gap: 6 }}>
         {[0.25, 0.5, 1].map(f => (
