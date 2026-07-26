@@ -6,10 +6,12 @@ yarn-error.log*
 pnpm-debug.log*
 
 # Build output
+.next/
 dist/
 build/
 out/
 coverage/
+*.tsbuildinfo
 
 # Environment files
 .env
