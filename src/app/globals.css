@@ -3,87 +3,92 @@
 @tailwind utilities;
 
 /*
-  BRAND: Flousy — "Cream & Tan"
-  Clean white surfaces, soft peach-tan single accent, near-black text.
-  Bright, calm, and readable — no dark glass, no neon.
+  BRAND: Serene Finance
+  An intentional, calm relationship with personal finance.
+  Sits at the intersection of Minimalism and Modern Corporate.
+  Utilizes Inter font, beautiful primary teal, soft off-white/charcoal surfaces, and soft depth.
 */
 
 :root {
   /* Base */
-  --color-bg: #FFFFFF;
-  --color-surface: #F8F8F8;
-  --color-card: #FFFFFF;
-  /* Brand */
-  --color-primary: #EEC1A0;
-  --color-primary-light: #F4D7C2;
-  --color-primary-dark: #D9A983;
+  --color-bg: #f5faf8;              /* Neutral Off-White background */
+  --color-surface: #eaefed;         /* surface-container */
+  --color-card: #ffffff;            /* surface-container-lowest */
+  /* Brand - Serene Teal */
+  --color-primary: #00685f;         /* Primary Teal */
+  --color-primary-light: #6bd8cb;   /* inverse-primary */
+  --color-primary-dark: #005049;    /* on-primary-fixed-variant */
   /* Text */
-  --color-text: #000000;
-  --color-text-secondary: #4D4D4D;
-  --color-text-muted: #A9A9A9;
-  --color-text-inverse: #FFFFFF;
+  --color-text: #171d1c;            /* on-surface */
+  --color-text-secondary: #3d4947;  /* on-surface-variant */
+  --color-text-muted: #6d7a77;      /* outline */
+  --color-text-inverse: #ffffff;    /* on-primary */
   /* Borders */
-  --color-border: #E5E5E5;
-  --color-divider: #F0F0F0;
+  --color-border: #bcc9c6;          /* outline-variant */
+  --color-divider: #e4e9e7;         /* surface-container-high */
   /* Icons */
-  --color-icon: #000000;
-  --color-icon-muted: #A9A9A9;
+  --color-icon: #171d1c;
+  --color-icon-muted: #6d7a77;
   /* States */
-  --color-success: #4CAF50;
-  --color-warning: #F4B400;
-  --color-error: #E53935;
-  --color-info: #2196F3;
+  --color-success: #008378;         /* primary-container (Success state) */
+  --color-warning: #924628;         /* tertiary (Warning state) */
+  --color-error: #ba1a1a;           /* error (Error state) */
+  --color-info: #575e70;            /* secondary (Info state) */
   /* Shadows */
-  --shadow-color: rgba(0, 0, 0, 0.08);
+  --shadow-color: rgba(0, 106, 97, 0.04); /* diffused, 4% opacity shadow with tint */
 
   /* ── app-level semantic aliases — every component reads these ── */
   --bg:        var(--color-bg);
   --surface:   var(--color-card);
   --surface-2: var(--color-surface);
-  --surface-3: #F1ECE6;
+  --surface-3: #dee4e1;             /* surface-container-highest */
   --border:    var(--color-divider);
   --border-2:  var(--color-border);
 
-  /* single accent — soft peach-tan */
+  /* single accent — Serene Teal */
   --accent:      var(--color-primary);
   --accent-dim:  var(--color-primary-dark);
-  --accent-tint: rgba(238,193,160,0.20);
-  --accent-ink:  var(--color-text); /* text color placed on top of --accent */
+  --accent-tint: rgba(0, 104, 95, 0.10); /* 10% opacity primary tint */
+  --accent-ink:  var(--color-text-inverse); /* text color placed on top of --accent */
 
   /* semantic */
   --good:      var(--color-success);
-  --good-tint: rgba(76,175,80,0.12);
+  --good-tint: rgba(0, 131, 120, 0.10);
   --bad:       var(--color-error);
-  --bad-tint:  rgba(229,57,53,0.10);
+  --bad-tint:  rgba(186, 26, 26, 0.10);
   --warn:      var(--color-warning);
-  --warn-tint: rgba(244,180,0,0.14);
+  --warn-tint: rgba(146, 70, 40, 0.10);
 
   /* text */
   --t1: var(--color-text);
   --t2: var(--color-text-secondary);
   --t3: var(--color-text-muted);
 
-  /* translucent app chrome (top bar / bottom nav) - tokenised so dark mode works */
-  --chrome: rgba(255, 255, 255, 0.85);
-  --chrome-strong: rgba(255, 255, 255, 0.92);
+  /* translucent app chrome */
+  --chrome: rgba(245, 250, 248, 0.85); /* transparent surface */
+  --chrome-strong: rgba(245, 250, 248, 0.94);
   /* recharts tooltip */
-  --tooltip-bg: #262626;
-  --tooltip-fg: #FFFFFF;
-  --tooltip-border: rgba(255, 255, 255, 0.08);
+  --tooltip-bg: #1c2120;
+  --tooltip-fg: #f5faf8;
+  --tooltip-border: rgba(0, 104, 95, 0.15);
 
   --shadow-card: 0 4px 20px var(--shadow-color);
-  --shadow-btn:  0 4px 14px rgba(217,169,131,0.45);
+  --shadow-btn:  0 4px 12px rgba(0, 104, 95, 0.15);
 
-  /* shape system — locked, do not deviate */
-  --r-card: 20px;
-  --r-field: 14px;
-  --r-pill: 999px;
+  /* shape system */
+  --r-card: 24px;   /* 1.5rem (containers & cards) */
+  --r-field: 8px;   /* 0.5rem (buttons & inputs) */
+  --r-btn: 8px;     /* 0.5rem (buttons) */
+  --r-pill: 999px;  /* Category chips & FABs */
+
+  /* modal backdrop */
+  --modal-overlay-bg: rgba(245, 250, 248, 0.6);
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
-  font-family: 'Manrope', system-ui, sans-serif;
+  font-family: 'Inter', system-ui, sans-serif;
   background: var(--bg);
   color: var(--t1);
   -webkit-tap-highlight-color: transparent;
@@ -91,7 +96,7 @@ body {
   min-height: 100vh;
 }
 
-.f-display { font-family: 'Space Grotesk', system-ui, sans-serif; }
+.f-display { font-family: 'Inter', system-ui, sans-serif; }
 
 /* ── cards: one radius, everywhere ── */
 .glass {
@@ -111,15 +116,15 @@ body {
   border-radius: var(--r-field);
 }
 
-/* ── buttons: pill, always ── */
+/* ── buttons: 0.5rem (8px) radius, always ── */
 .btn-primary {
   background: var(--accent);
   color: var(--accent-ink);
-  font-family: 'Space Grotesk', sans-serif;
+  font-family: 'Inter', sans-serif;
   font-weight: 700;
   font-size: 15px;
   padding: 14px 24px;
-  border-radius: var(--r-pill);
+  border-radius: var(--r-btn);
   width: 100%;
   display: flex;
   align-items: center;
@@ -130,7 +135,7 @@ body {
   border: none;
   cursor: pointer;
 }
-.btn-primary:active { transform: scale(0.97) translateY(1px); box-shadow: 0 2px 8px rgba(217,169,131,0.3); }
+.btn-primary:active { transform: scale(0.97) translateY(1px); box-shadow: 0 2px 8px rgba(0, 104, 95, 0.15); }
 
 .btn-ghost {
   background: var(--surface-2);
@@ -138,7 +143,7 @@ body {
   font-weight: 600;
   font-size: 14px;
   padding: 12px 20px;
-  border-radius: var(--r-pill);
+  border-radius: var(--r-btn);
   border: 1px solid var(--border-2);
   display: flex;
   align-items: center;
@@ -178,7 +183,7 @@ body {
   border: 1.5px solid var(--border-2);
   background: var(--surface-2);
   color: var(--t1);
-  font-family: 'Manrope', sans-serif;
+  font-family: 'Inter', sans-serif;
   font-size: 14px;
   outline: none;
   transition: border 0.15s ease, background 0.15s ease;
@@ -249,7 +254,7 @@ select.field option { background: var(--surface); color: var(--t1); }
 /* ── legal/prose pages ── */
 .legal { color: var(--t2); font-size: 14.5px; line-height: 1.68; }
 .legal h2 {
-  font-family: 'Space Grotesk', system-ui, sans-serif;
+  font-family: 'Inter', system-ui, sans-serif;
   font-size: 17px; font-weight: 700; color: var(--t1);
   margin: 30px 0 8px;
 }
@@ -268,38 +273,44 @@ select.field option { background: var(--surface); color: var(--t1); }
 }
 
 /* ── dark mode (M12) ──
-   The whole UI reads from these tokens, so overriding them here is enough.
-   Semantic hues are lifted slightly for contrast on dark surfaces. */
+   The whole UI reads from these tokens, so overriding them here is enough. */
 @media (prefers-color-scheme: dark) {
   :root {
-    --color-bg: #121212;
-    --color-surface: #1C1C1C;
-    --color-card: #181818;
-    --color-text: #F5F5F5;
-    --color-text-secondary: #B4B4B4;
-    --color-text-muted: #7A7A7A;
-    --color-text-inverse: #121212;
-    --color-border: #2E2E2E;
-    --color-divider: #262626;
+    /* Deep Charcoal */
+    --color-bg: #121413;
+    --color-surface: #242827;
+    --color-card: #1a1c1b;
+    --color-text: #f5faf8;
+    --color-text-secondary: #dee4e1;
+    --color-text-muted: #8a9592;
+    --color-text-inverse: #00201d; /* on-primary-fixed */
+    --color-border: #3d4947;
+    --color-divider: #2c3130;
     --shadow-color: rgba(0, 0, 0, 0.5);
 
-    --surface-3: #242424;
-    --accent-tint: rgba(238, 193, 160, 0.16);
-    --accent-ink: #1A1208;
+    --surface-3: #323836;
+    --accent-tint: rgba(107, 216, 203, 0.12);
+    --accent-ink: #00201d;
 
-    --color-success: #5FCB68;
-    --color-warning: #F5C144;
-    --color-error: #F4635E;
+    --color-primary: #6bd8cb;       /* inverse-primary / dim-primary for contrast */
+    --color-primary-light: #89f5e7;
+    --color-primary-dark: #005049;
 
-    --chrome: rgba(18, 18, 18, 0.85);
-    --chrome-strong: rgba(18, 18, 18, 0.94);
-    --tooltip-bg: #2A2A2A;
-    --tooltip-fg: #F5F5F5;
-    --tooltip-border: rgba(255, 255, 255, 0.12);
+    --color-success: #6bd8cb;
+    --color-warning: #ffb59a;
+    --color-error: #ffb4ab;
 
-    --good-tint: rgba(95, 203, 104, 0.14);
-    --bad-tint:  rgba(244, 99, 94, 0.14);
-    --warn-tint: rgba(245, 193, 68, 0.16);
+    --chrome: rgba(18, 20, 19, 0.85);
+    --chrome-strong: rgba(18, 20, 19, 0.94);
+    --tooltip-bg: #1a1c1b;
+    --tooltip-fg: #f5faf8;
+    --tooltip-border: rgba(107, 216, 203, 0.15);
+
+    --good-tint: rgba(107, 216, 203, 0.12);
+    --bad-tint:  rgba(255, 180, 171, 0.12);
+    --warn-tint: rgba(255, 181, 154, 0.12);
+
+    --modal-overlay-bg: rgba(18, 20, 19, 0.6);
   }
 
   input[type="date"] { color-scheme: dark; }

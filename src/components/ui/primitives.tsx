@@ -22,7 +22,7 @@ export const catIcon = (month: MonthBudget, t: string): Icon => {
 }
 
 export const MONEY_PLACE_ICON: Record<MoneyPlace, Icon> = { bank: Bank, home: House, wallet: Wallet }
-export const MONEY_PLACE_TINT: Record<MoneyPlace, string> = { bank: '#7B9E8E', home: '#D6A75C', wallet: '#C9695A' }
+export const MONEY_PLACE_TINT: Record<MoneyPlace, string> = { bank: '#00685f', home: '#575e70', wallet: '#924628' }
 
 export function prevMonth(id: string) {
   const [y, m] = id.split('-')
@@ -102,16 +102,16 @@ export function IconBadge({ Icon: Ico, color, size = 40 }: { Icon: Icon; color: 
 
 /* ── Chip ── */
 export function Chip({ label, color = 'var(--accent)', solid = false }: { label: string; color?: string; solid?: boolean }) {
-  return solid ? (
+  const dotColor = solid ? 'var(--t1)' : color;
+  return (
     <span style={{
-      display: 'inline-flex', alignItems: 'center', padding: '3px 10px', borderRadius: 999,
-      fontSize: 10, fontWeight: 700, background: color, color: 'var(--t1)', letterSpacing: '0.04em',
-    }}>{label}</span>
-  ) : (
-    <span style={{
-      display: 'inline-flex', alignItems: 'center', padding: '3px 10px', borderRadius: 999,
-      fontSize: 10, fontWeight: 700, background: color + '22', color, letterSpacing: '0.04em',
-    }}>{label}</span>
+      display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '4px 10px', borderRadius: '3rem',
+      fontSize: '11px', fontWeight: 600, background: solid ? color : `${color}1a`, color: solid ? 'var(--t1)' : color,
+      letterSpacing: '0.03em', border: `1px solid ${color}20`
+    }}>
+      <span style={{ width: 6, height: 6, borderRadius: '50%', background: dotColor, flexShrink: 0 }} />
+      {label}
+    </span>
   )
 }
 

@@ -257,14 +257,14 @@ export function OverviewTab({
                 <AreaChart data={weekBuckets} margin={{ top: 4, right: 4, left: 4, bottom: 0 }}>
                   <defs>
                     <linearGradient id="g1" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#D9A983" stopOpacity={0.45} />
-                      <stop offset="100%" stopColor="#D9A983" stopOpacity={0} />
+                      <stop offset="0%" stopColor="var(--accent)" stopOpacity={0.45} />
+                      <stop offset="100%" stopColor="var(--accent)" stopOpacity={0} />
                     </linearGradient>
                   </defs>
-                  <XAxis dataKey="w" tick={{ fontSize: 9, fill: '#A9A9A9' }} axisLine={false} tickLine={false} />
+                  <XAxis dataKey="w" tick={{ fontSize: 9, fill: 'var(--t3)' }} axisLine={false} tickLine={false} />
                   <Area
-                    type="monotone" dataKey="v" stroke="#D9A983" strokeWidth={2} fill="url(#g1)"
-                    dot={{ r: 3, fill: '#D9A983', strokeWidth: 0 }}
+                    type="monotone" dataKey="v" stroke="var(--accent)" strokeWidth={2} fill="url(#g1)"
+                    dot={{ r: 3, fill: 'var(--accent)', strokeWidth: 0 }}
                   />
                   <Tooltip
                     contentStyle={{ background: 'var(--tooltip-bg)', border: '1px solid var(--tooltip-border)', borderRadius: 10, fontSize: 12, color: 'var(--tooltip-fg)' }}
