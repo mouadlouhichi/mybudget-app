@@ -1,0 +1,385 @@
+<!DOCTYPE html><html class="light" lang="en" style=""><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Flousy - Fixed Charges</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "outline": "#6d7a77",
+                      "on-secondary": "#ffffff",
+                      "secondary-fixed": "#dce2f7",
+                      "secondary-container": "#d9dff5",
+                      "outline-variant": "#bcc9c6",
+                      "on-primary": "#ffffff",
+                      "tertiary-fixed-dim": "#ffb59a",
+                      "inverse-surface": "#2c3130",
+                      "on-tertiary-fixed": "#370e00",
+                      "surface-dim": "#d6dbd9",
+                      "on-error": "#ffffff",
+                      "tertiary": "#924628",
+                      "on-background": "#171d1c",
+                      "secondary-fixed-dim": "#c0c6db",
+                      "surface-tint": "#006a61",
+                      "on-tertiary": "#ffffff",
+                      "tertiary-container": "#b05e3d",
+                      "secondary": "#575e70",
+                      "surface": "#f5faf8",
+                      "primary": "#00685f",
+                      "on-surface-variant": "#3d4947",
+                      "surface-container-high": "#e4e9e7",
+                      "on-tertiary-fixed-variant": "#773215",
+                      "on-tertiary-container": "#fffbff",
+                      "surface-variant": "#dee4e1",
+                      "on-surface": "#171d1c",
+                      "surface-container-lowest": "#ffffff",
+                      "surface-container-low": "#f0f5f2",
+                      "inverse-on-surface": "#edf2f0",
+                      "on-secondary-fixed-variant": "#404758",
+                      "surface-container": "#eaefed",
+                      "on-primary-container": "#f4fffc",
+                      "error": "#ba1a1a",
+                      "background": "#f5faf8",
+                      "on-primary-fixed-variant": "#005049",
+                      "on-primary-fixed": "#00201d",
+                      "on-error-container": "#93000a",
+                      "inverse-primary": "#6bd8cb",
+                      "primary-fixed-dim": "#6bd8cb",
+                      "surface-container-highest": "#dee4e1",
+                      "on-secondary-fixed": "#141b2b",
+                      "tertiary-fixed": "#ffdbce",
+                      "primary-fixed": "#89f5e7",
+                      "error-container": "#ffdad6",
+                      "primary-container": "#008378",
+                      "on-secondary-container": "#5c6274",
+                      "surface-bright": "#f5faf8"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "sm": "8px",
+                      "xs": "4px",
+                      "xl": "32px",
+                      "margin-mobile": "16px",
+                      "md": "16px",
+                      "gutter": "16px",
+                      "base": "4px",
+                      "margin-desktop": "48px",
+                      "lg": "24px"
+              },
+              "fontFamily": {
+                      "headline-lg-mobile": [
+                              "Inter"
+                      ],
+                      "body-lg": [
+                              "Inter"
+                      ],
+                      "label-md": [
+                              "Inter"
+                      ],
+                      "headline-lg": [
+                              "Inter"
+                      ],
+                      "label-sm": [
+                              "Inter"
+                      ],
+                      "headline-md": [
+                              "Inter"
+                      ],
+                      "body-md": [
+                              "Inter"
+                      ]
+              },
+              "fontSize": {
+                      "headline-lg-mobile": [
+                              "24px",
+                              {
+                                      "lineHeight": "32px",
+                                      "letterSpacing": "-0.01em",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "body-lg": [
+                              "16px",
+                              {
+                                      "lineHeight": "24px",
+                                      "letterSpacing": "0",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "label-md": [
+                              "12px",
+                              {
+                                      "lineHeight": "16px",
+                                      "letterSpacing": "0.05em",
+                                      "fontWeight": "500"
+                              }
+                      ],
+                      "headline-lg": [
+                              "32px",
+                              {
+                                      "lineHeight": "40px",
+                                      "letterSpacing": "-0.02em",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "label-sm": [
+                              "11px",
+                              {
+                                      "lineHeight": "14px",
+                                      "letterSpacing": "0.03em",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "headline-md": [
+                              "20px",
+                              {
+                                      "lineHeight": "28px",
+                                      "letterSpacing": "-0.01em",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "body-md": [
+                              "14px",
+                              {
+                                      "lineHeight": "20px",
+                                      "letterSpacing": "0",
+                                      "fontWeight": "400"
+                              }
+                      ]
+              }
+            },
+          },
+        }
+      </script>
+<style>
+        body {
+            background-color: theme('colors.background');
+            color: theme('colors.on-background');
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        .soft-depth-card {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.04), 0 2px 4px -1px rgba(0, 0, 0, 0.02);
+        }
+        
+        .fab-shadow {
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.12), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        .dot-indicator {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+        
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+      </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head>
+<body class="antialiased min-h-screen flex flex-col font-body-md pb-32 md:pb-0">
+<!-- TopAppBar -->
+<header class="flex justify-between items-center w-full px-margin-mobile h-16 bg-surface dark:bg-inverse-surface md:px-margin-desktop sticky top-0 z-40 transition-shadow" id="main-header">
+<button class="flex items-center justify-center w-10 h-10 rounded-full hover:opacity-80 transition-opacity active:scale-95 duration-200 text-primary dark:text-primary-fixed-dim md:hidden">
+<span class="material-symbols-outlined" style="font-variation-settings: &quot;FILL&quot; 0;">arrow_back</span>
+</button>
+<div class="font-headline-md text-headline-md font-bold text-primary dark:text-primary-fixed-dim md:flex-1">
+            Flousy
+        </div>
+<!-- Desktop Navigation (Hidden on Mobile) -->
+<nav class="hidden md:flex flex-row items-center justify-center flex-1 gap-xl">
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-outline-variant hover:opacity-80 transition-opacity active:scale-95 duration-150 gap-xs group" href="#">
+<span class="font-label-md text-label-md group-hover:text-primary transition-colors">Overview</span>
+</a>
+<a class="flex flex-col items-center justify-center text-primary dark:text-primary-fixed-dim font-bold hover:opacity-80 transition-opacity active:scale-95 duration-150 gap-xs group relative" href="#">
+<span class="font-label-md text-label-md">Fixed</span>
+<div class="absolute -bottom-4 w-full h-0.5 bg-primary rounded-t-full"></div>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-outline-variant hover:opacity-80 transition-opacity active:scale-95 duration-150 gap-xs group" href="#">
+<span class="font-label-md text-label-md group-hover:text-primary transition-colors">Variable</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-outline-variant hover:opacity-80 transition-opacity active:scale-95 duration-150 gap-xs group" href="#">
+<span class="font-label-md text-label-md group-hover:text-primary transition-colors">Savings</span>
+</a>
+</nav>
+<button class="flex items-center justify-center w-10 h-10 rounded-full hover:opacity-80 transition-opacity active:scale-95 duration-200 text-primary dark:text-primary-fixed-dim md:flex-1 md:justify-end">
+<span class="material-symbols-outlined" style="font-variation-settings: &quot;FILL&quot; 0;">account_circle</span>
+</button>
+</header>
+<!-- Main Content Canvas -->
+<main class="flex-1 w-full max-w-3xl mx-auto px-margin-mobile md:px-0 py-lg flex flex-col gap-xl">
+<!-- Page Header -->
+<section class="flex flex-col gap-sm">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: &quot;FILL&quot; 1;">event_repeat</span>
+<h1 class="font-headline-lg-mobile text-headline-lg-mobile md:font-headline-lg md:text-headline-lg text-on-background">Fixed Charges</h1>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant">Recurring monthly commitments.</p>
+</section>
+<!-- Total Summary Card -->
+<section class="bg-surface-container-lowest border border-outline-variant/30 rounded-[24px] p-lg soft-depth-card flex flex-col gap-md relative overflow-hidden">
+<!-- Decorative subtle pattern -->
+<div class="absolute inset-0 opacity-[0.03] pointer-events-none" style="background-image: radial-gradient(circle at 2px 2px, theme('colors.primary') 1px, transparent 0); background-size: 24px 24px;"></div>
+<div class="flex justify-between items-end relative z-10">
+<div class="flex flex-col gap-xs">
+<span class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Total Monthly Fixed</span>
+<span class="font-headline-lg-mobile text-headline-lg-mobile md:font-headline-lg md:text-headline-lg text-on-surface">3,250.00 <span class="font-body-md text-body-md text-on-surface-variant font-normal">MAD</span></span>
+</div>
+<div class="bg-surface-container rounded-xl p-2 flex items-center justify-center">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: &quot;FILL&quot; 0;">trending_up</span>
+</div>
+</div>
+</section>
+<!-- Category Groups -->
+<div class="flex flex-col gap-xl">
+<!-- Housing Group -->
+<section class="flex flex-col gap-md">
+<div class="flex items-center gap-2 px-2">
+<div class="dot-indicator bg-tertiary"></div>
+<h2 class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Housing</h2>
+</div>
+<div class="bg-surface-container-lowest border border-outline-variant/30 rounded-[24px] soft-depth-card overflow-hidden">
+<!-- Row Item -->
+<div class="flex items-center justify-between p-lg border-b border-outline-variant/20 hover:bg-surface-container-low transition-colors group cursor-pointer">
+<div class="flex items-center gap-md">
+<div class="w-10 h-10 rounded-full bg-tertiary/10 flex items-center justify-center text-tertiary">
+<span class="material-symbols-outlined" style="font-variation-settings: &quot;FILL&quot; 1;">home</span>
+</div>
+<div class="flex flex-col">
+<span class="font-body-lg text-body-lg text-on-surface font-medium">Rent</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]" style="font-variation-settings: &quot;FILL&quot; 0;">calendar_today</span> Due 1st
+                                </span>
+</div>
+</div>
+<div class="flex items-center gap-md">
+<span class="font-body-lg text-body-lg text-on-surface font-semibold">2,500.00</span>
+<div class="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="w-8 h-8 rounded-full flex items-center justify-center text-outline hover:bg-surface-variant/50 hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: &quot;FILL&quot; 0;">edit</span>
+</button>
+<button class="w-8 h-8 rounded-full flex items-center justify-center text-outline hover:bg-error-container hover:text-error transition-colors">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: &quot;FILL&quot; 0;">delete</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Subscriptions Group -->
+<section class="flex flex-col gap-md">
+<div class="flex items-center gap-2 px-2">
+<div class="dot-indicator bg-primary"></div>
+<h2 class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Subscriptions</h2>
+</div>
+<div class="bg-surface-container-lowest border border-outline-variant/30 rounded-[24px] soft-depth-card overflow-hidden">
+<!-- Row Item -->
+<div class="flex items-center justify-between p-lg border-b border-outline-variant/20 hover:bg-surface-container-low transition-colors group cursor-pointer">
+<div class="flex items-center gap-md">
+<div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined" style="font-variation-settings: &quot;FILL&quot; 1;">movie</span>
+</div>
+<div class="flex flex-col">
+<span class="font-body-lg text-body-lg text-on-surface font-medium">Netflix</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]" style="font-variation-settings: &quot;FILL&quot; 0;">calendar_today</span> Due 15th
+                                </span>
+</div>
+</div>
+<div class="flex items-center gap-md">
+<span class="font-body-lg text-body-lg text-on-surface font-semibold">120.00</span>
+<div class="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="w-8 h-8 rounded-full flex items-center justify-center text-outline hover:bg-surface-variant/50 hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: &quot;FILL&quot; 0;">edit</span>
+</button>
+<button class="w-8 h-8 rounded-full flex items-center justify-center text-outline hover:bg-error-container hover:text-error transition-colors">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: &quot;FILL&quot; 0;">delete</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Row Item -->
+<div class="flex items-center justify-between p-lg border-b border-outline-variant/20 hover:bg-surface-container-low transition-colors group cursor-pointer">
+<div class="flex items-center gap-md">
+<div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined" style="font-variation-settings: &quot;FILL&quot; 1;">music_note</span>
+</div>
+<div class="flex flex-col">
+<span class="font-body-lg text-body-lg text-on-surface font-medium">Spotify</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]" style="font-variation-settings: &quot;FILL&quot; 0;">calendar_today</span> Due 22nd
+                                </span>
+</div>
+</div>
+<div class="flex items-center gap-md">
+<span class="font-body-lg text-body-lg text-on-surface font-semibold">50.00</span>
+<div class="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="w-8 h-8 rounded-full flex items-center justify-center text-outline hover:bg-surface-variant/50 hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: &quot;FILL&quot; 0;">edit</span>
+</button>
+<button class="w-8 h-8 rounded-full flex items-center justify-center text-outline hover:bg-error-container hover:text-error transition-colors">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: &quot;FILL&quot; 0;">delete</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</section>
+</div>
+</main>
+<!-- FAB for adding fixed charge -->
+<button class="fixed bottom-32 right-4 md:bottom-8 md:right-8 w-14 h-14 bg-primary text-on-primary rounded-xl flex items-center justify-center fab-shadow hover:bg-primary-container hover:text-on-primary-container transition-colors active:scale-95 duration-150 z-40 group">
+<span class="material-symbols-outlined transition-transform group-hover:rotate-90 duration-300" style="font-variation-settings: &quot;FILL&quot; 0;">add</span>
+</button>
+<!-- BottomNavBar (Mobile Only) -->
+<nav class="fixed bottom-6 left-6 right-6 z-50 flex justify-around items-center px-4 py-2 bg-surface/80 dark:bg-inverse-surface/80 backdrop-blur-md md:hidden border border-outline-variant/30 rounded-3xl shadow-lg">
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-outline-variant hover:bg-surface-variant/40 dark:hover:bg-surface-variant/20 w-full py-2 rounded-2xl transition-colors active:scale-95 duration-150 gap-1" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: &quot;FILL&quot; 0, &quot;wght&quot; 300;">dashboard</span>
+
+</a>
+<a class="flex flex-col items-center justify-center text-primary dark:text-primary-fixed-dim font-bold bg-primary/10 dark:bg-primary/20 w-full py-2 rounded-2xl transition-colors active:scale-95 duration-150 gap-1" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: &quot;FILL&quot; 1, &quot;wght&quot; 500;">event_repeat</span>
+
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-outline-variant hover:bg-surface-variant/40 dark:hover:bg-surface-variant/20 w-full py-2 rounded-2xl transition-colors active:scale-95 duration-150 gap-1" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: &quot;FILL&quot; 0, &quot;wght&quot; 300;">shopping_cart</span>
+
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-outline-variant hover:bg-surface-variant/40 dark:hover:bg-surface-variant/20 w-full py-2 rounded-2xl transition-colors active:scale-95 duration-150 gap-1" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: &quot;FILL&quot; 0, &quot;wght&quot; 300;">savings</span>
+
+</a>
+</nav>
+<script>
+        // Simple scroll handler for top app bar elevation
+        const header = document.getElementById('main-header');
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 10) {
+                header.classList.add('shadow-sm');
+            } else {
+                header.classList.remove('shadow-sm');
+            }
+        });
+    </script>
+</body></html>

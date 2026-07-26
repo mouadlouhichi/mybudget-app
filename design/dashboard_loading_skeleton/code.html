@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Dashboard Loading Skeleton</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "inverse-primary": "#6bd8cb",
+                        "tertiary-fixed": "#ffdbce",
+                        "on-tertiary-fixed-variant": "#773215",
+                        "surface-container-high": "#e4e9e7",
+                        "on-primary-container": "#f4fffc",
+                        "on-primary": "#ffffff",
+                        "on-error": "#ffffff",
+                        "on-secondary-container": "#5c6274",
+                        "primary-fixed": "#89f5e7",
+                        "on-surface-variant": "#3d4947",
+                        "primary-container": "#008378",
+                        "outline": "#6d7a77",
+                        "tertiary-container": "#b05e3d",
+                        "secondary-container": "#d9dff5",
+                        "on-primary-fixed-variant": "#005049",
+                        "error-container": "#ffdad6",
+                        "surface": "#f5faf8",
+                        "surface-bright": "#f5faf8",
+                        "surface-tint": "#006a61",
+                        "inverse-on-surface": "#edf2f0",
+                        "on-tertiary": "#ffffff",
+                        "on-secondary": "#ffffff",
+                        "surface-dim": "#d6dbd9",
+                        "on-error-container": "#93000a",
+                        "inverse-surface": "#2c3130",
+                        "tertiary-fixed-dim": "#ffb59a",
+                        "surface-container-lowest": "#ffffff",
+                        "outline-variant": "#bcc9c6",
+                        "surface-variant": "#dee4e1",
+                        "on-primary-fixed": "#00201d",
+                        "secondary-fixed": "#dce2f7",
+                        "secondary-fixed-dim": "#c0c6db",
+                        "error": "#ba1a1a",
+                        "secondary": "#575e70",
+                        "primary-fixed-dim": "#6bd8cb",
+                        "surface-container-low": "#f0f5f2",
+                        "on-tertiary-container": "#fffbff",
+                        "tertiary": "#924628",
+                        "surface-container-highest": "#dee4e1",
+                        "background": "#f5faf8",
+                        "primary": "#00685f",
+                        "on-tertiary-fixed": "#370e00",
+                        "on-secondary-fixed": "#141b2b",
+                        "surface-container": "#eaefed",
+                        "on-secondary-fixed-variant": "#404758",
+                        "on-background": "#171d1c",
+                        "on-surface": "#171d1c"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "2xl": "1.5rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "margin-desktop": "48px",
+                        "sm": "8px",
+                        "md": "16px",
+                        "gutter": "16px",
+                        "xs": "4px",
+                        "xl": "32px",
+                        "base": "4px",
+                        "margin-mobile": "16px",
+                        "lg": "24px"
+                    },
+                    "fontFamily": {
+                        "headline-md": ["Inter"],
+                        "headline-lg": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "label-sm": ["Inter"],
+                        "headline-lg-mobile": ["Inter"],
+                        "body-md": ["Inter"],
+                        "label-md": ["Inter"]
+                    },
+                    "fontSize": {
+                        "headline-md": ["20px", { "lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "headline-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "body-lg": ["16px", { "lineHeight": "24px", "letterSpacing": "0", "fontWeight": "400" }],
+                        "label-sm": ["11px", { "lineHeight": "14px", "letterSpacing": "0.03em", "fontWeight": "600" }],
+                        "headline-lg-mobile": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "700" }],
+                        "body-md": ["14px", { "lineHeight": "20px", "letterSpacing": "0", "fontWeight": "400" }],
+                        "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "500" }]
+                    },
+                    animation: {
+                        'shimmer': 'shimmer 2s infinite linear',
+                    },
+                    keyframes: {
+                        shimmer: {
+                            '0%': { backgroundPosition: '-1000px 0' },
+                            '100%': { backgroundPosition: '1000px 0' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .skeleton-loader {
+            background: linear-gradient(90deg, #dee4e1 0%, #eaefed 50%, #dee4e1 100%);
+            background-size: 1000px 100%;
+            animation: shimmer 2s infinite linear;
+        }
+        
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background min-h-screen pb-24 md:pb-0 font-body-md">
+<!-- Desktop Sidebar (Hidden on Mobile) -->
+<aside class="hidden md:flex fixed top-0 left-0 h-full w-64 bg-surface border-r border-outline-variant flex-col py-lg px-md z-40">
+<div class="font-headline-lg text-headline-lg text-primary mb-xl flex items-center gap-2 px-md">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1; font-size: 32px;">account_balance_wallet</span>
+            Flousy
+        </div>
+<nav class="flex-1 flex flex-col gap-sm">
+<div class="flex items-center gap-3 px-md py-3 rounded-lg bg-primary-container text-on-primary-container font-label-md text-label-md">
+<span class="material-symbols-outlined">dashboard</span>
+                Overview
+            </div>
+<div class="flex items-center gap-3 px-md py-3 rounded-lg text-on-surface-variant hover:bg-surface-variant/20 transition-colors font-label-md text-label-md cursor-pointer">
+<span class="material-symbols-outlined">event_repeat</span>
+                Fixed
+            </div>
+<div class="flex items-center gap-3 px-md py-3 rounded-lg text-on-surface-variant hover:bg-surface-variant/20 transition-colors font-label-md text-label-md cursor-pointer">
+<span class="material-symbols-outlined">shopping_cart</span>
+                Variable
+            </div>
+<div class="flex items-center gap-3 px-md py-3 rounded-lg text-on-surface-variant hover:bg-surface-variant/20 transition-colors font-label-md text-label-md cursor-pointer">
+<span class="material-symbols-outlined">savings</span>
+                Savings
+            </div>
+</nav>
+<div class="mt-auto pt-lg border-t border-outline-variant flex items-center gap-3 px-md">
+<div class="w-10 h-10 rounded-full skeleton-loader"></div>
+<div class="flex flex-col gap-1">
+<div class="w-24 h-4 rounded skeleton-loader"></div>
+<div class="w-16 h-3 rounded skeleton-loader"></div>
+</div>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="md:ml-64 w-full max-w-7xl mx-auto p-margin-mobile md:p-margin-desktop space-y-xl">
+<!-- Header Skeleton -->
+<header class="flex justify-between items-center w-full">
+<div class="flex flex-col gap-2">
+<div class="w-32 h-8 rounded-lg skeleton-loader md:w-48 md:h-10"></div>
+<div class="w-48 h-4 rounded skeleton-loader md:w-64"></div>
+</div>
+<div class="w-12 h-12 rounded-full skeleton-loader hidden md:block"></div>
+</header>
+<!-- Bento Grid Layout for Dashboard Skeletons -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-gutter">
+<!-- Main Balance Card Skeleton (Spans full on mobile, 8 cols on desktop) -->
+<div class="col-span-1 md:col-span-8 bg-surface rounded-2xl border border-outline-variant p-lg shadow-sm flex flex-col justify-between min-h-[240px]">
+<div class="flex justify-between items-start">
+<div class="w-24 h-5 rounded skeleton-loader"></div>
+<div class="w-8 h-8 rounded-full skeleton-loader"></div>
+</div>
+<div class="space-y-4 my-8">
+<div class="w-48 md:w-64 h-12 rounded-lg skeleton-loader"></div>
+<div class="w-32 h-4 rounded skeleton-loader"></div>
+</div>
+<div class="flex gap-4">
+<div class="w-full h-12 rounded-lg skeleton-loader"></div>
+<div class="w-full h-12 rounded-lg skeleton-loader"></div>
+</div>
+</div>
+<!-- Quick Stats / Goals Card Skeleton (Spans full on mobile, 4 cols on desktop) -->
+<div class="col-span-1 md:col-span-4 bg-surface-container-low rounded-2xl p-lg flex flex-col gap-6 min-h-[240px]">
+<div class="w-32 h-6 rounded skeleton-loader"></div>
+<!-- Circular Chart Skeleton -->
+<div class="flex-1 flex justify-center items-center relative">
+<div class="w-32 h-32 rounded-full border-[12px] border-surface-variant skeleton-loader relative flex items-center justify-center">
+<div class="w-24 h-24 bg-surface-container-low rounded-full absolute"></div>
+<div class="w-12 h-6 rounded skeleton-loader z-10"></div>
+</div>
+</div>
+<div class="flex justify-between items-center">
+<div class="w-16 h-4 rounded skeleton-loader"></div>
+<div class="w-16 h-4 rounded skeleton-loader"></div>
+</div>
+</div>
+<!-- Budget Bars Skeletons (Spans full on mobile, 6 cols on desktop) -->
+<div class="col-span-1 md:col-span-6 bg-surface rounded-2xl border border-outline-variant p-lg shadow-sm space-y-6">
+<div class="w-40 h-6 rounded skeleton-loader mb-4"></div>
+<!-- Budget Item 1 -->
+<div class="space-y-2">
+<div class="flex justify-between items-center">
+<div class="flex items-center gap-2">
+<div class="w-8 h-8 rounded-full skeleton-loader"></div>
+<div class="w-24 h-4 rounded skeleton-loader"></div>
+</div>
+<div class="w-16 h-4 rounded skeleton-loader"></div>
+</div>
+<div class="w-full h-3 rounded-full skeleton-loader"></div>
+</div>
+<!-- Budget Item 2 -->
+<div class="space-y-2">
+<div class="flex justify-between items-center">
+<div class="flex items-center gap-2">
+<div class="w-8 h-8 rounded-full skeleton-loader"></div>
+<div class="w-20 h-4 rounded skeleton-loader"></div>
+</div>
+<div class="w-20 h-4 rounded skeleton-loader"></div>
+</div>
+<div class="w-full h-3 rounded-full skeleton-loader"></div>
+</div>
+<!-- Budget Item 3 -->
+<div class="space-y-2">
+<div class="flex justify-between items-center">
+<div class="flex items-center gap-2">
+<div class="w-8 h-8 rounded-full skeleton-loader"></div>
+<div class="w-28 h-4 rounded skeleton-loader"></div>
+</div>
+<div class="w-12 h-4 rounded skeleton-loader"></div>
+</div>
+<div class="w-full h-3 rounded-full skeleton-loader"></div>
+</div>
+</div>
+<!-- Recent Activity Skeleton (Spans full on mobile, 6 cols on desktop) -->
+<div class="col-span-1 md:col-span-6 bg-surface rounded-2xl border border-outline-variant p-lg shadow-sm">
+<div class="flex justify-between items-center mb-6">
+<div class="w-32 h-6 rounded skeleton-loader"></div>
+<div class="w-16 h-4 rounded skeleton-loader"></div>
+</div>
+<div class="space-y-5">
+<!-- Activity Item 1 -->
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-lg skeleton-loader"></div>
+<div class="flex flex-col gap-1.5">
+<div class="w-32 h-4 rounded skeleton-loader"></div>
+<div class="w-20 h-3 rounded skeleton-loader"></div>
+</div>
+</div>
+<div class="w-16 h-5 rounded skeleton-loader"></div>
+</div>
+<!-- Activity Item 2 -->
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-lg skeleton-loader"></div>
+<div class="flex flex-col gap-1.5">
+<div class="w-24 h-4 rounded skeleton-loader"></div>
+<div class="w-16 h-3 rounded skeleton-loader"></div>
+</div>
+</div>
+<div class="w-12 h-5 rounded skeleton-loader"></div>
+</div>
+<!-- Activity Item 3 -->
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-lg skeleton-loader"></div>
+<div class="flex flex-col gap-1.5">
+<div class="w-40 h-4 rounded skeleton-loader"></div>
+<div class="w-24 h-3 rounded skeleton-loader"></div>
+</div>
+</div>
+<div class="w-20 h-5 rounded skeleton-loader"></div>
+</div>
+<!-- Activity Item 4 -->
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-lg skeleton-loader"></div>
+<div class="flex flex-col gap-1.5">
+<div class="w-28 h-4 rounded skeleton-loader"></div>
+<div class="w-16 h-3 rounded skeleton-loader"></div>
+</div>
+</div>
+<div class="w-14 h-5 rounded skeleton-loader"></div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Floating Action Button (FAB) Skeleton -->
+<button class="fixed bottom-24 md:bottom-8 right-4 md:right-8 w-14 h-14 bg-surface-variant rounded-xl shadow-md flex items-center justify-center skeleton-loader z-50">
+</button>
+<!-- Mobile Bottom Navigation (Hidden on Desktop) -->
+<nav class="md:hidden fixed bottom-0 w-full z-50 flex justify-around items-center px-4 py-2 bg-surface/90 backdrop-blur-md border-t border-outline-variant shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
+<div class="flex flex-col items-center justify-center text-primary font-bold w-16 gap-1">
+<div class="w-6 h-6 rounded-md skeleton-loader"></div>
+<div class="w-12 h-2 rounded skeleton-loader"></div>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant w-16 gap-1">
+<div class="w-6 h-6 rounded-md skeleton-loader"></div>
+<div class="w-12 h-2 rounded skeleton-loader"></div>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant w-16 gap-1">
+<div class="w-6 h-6 rounded-md skeleton-loader"></div>
+<div class="w-12 h-2 rounded skeleton-loader"></div>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant w-16 gap-1">
+<div class="w-6 h-6 rounded-md skeleton-loader"></div>
+<div class="w-12 h-2 rounded skeleton-loader"></div>
+</div>
+</nav>
+</body></html>

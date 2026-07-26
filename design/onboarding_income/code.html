@@ -1,0 +1,180 @@
+<!DOCTYPE html><html dir="auto" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Flousy - Onboarding Step 1</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary-container": "#008378",
+                        "surface-variant": "#dee4e1",
+                        "surface-container-high": "#e4e9e7",
+                        "primary-fixed-dim": "#6bd8cb",
+                        "outline-variant": "#bcc9c6",
+                        "surface": "#f5faf8",
+                        "on-tertiary-fixed-variant": "#773215",
+                        "tertiary-fixed": "#ffdbce",
+                        "on-secondary-container": "#5c6274",
+                        "primary-fixed": "#89f5e7",
+                        "on-primary-fixed": "#00201d",
+                        "outline": "#6d7a77",
+                        "on-surface-variant": "#3d4947",
+                        "on-tertiary": "#ffffff",
+                        "on-secondary-fixed-variant": "#404758",
+                        "on-tertiary-container": "#fffbff",
+                        "on-error": "#ffffff",
+                        "surface-bright": "#f5faf8",
+                        "secondary-fixed": "#dce2f7",
+                        "secondary-container": "#d9dff5",
+                        "inverse-primary": "#6bd8cb",
+                        "on-secondary-fixed": "#141b2b",
+                        "on-error-container": "#93000a",
+                        "error": "#ba1a1a",
+                        "tertiary": "#924628",
+                        "surface-container-lowest": "#ffffff",
+                        "inverse-surface": "#2c3130",
+                        "background": "#f5faf8",
+                        "on-surface": "#171d1c",
+                        "tertiary-container": "#b05e3d",
+                        "tertiary-fixed-dim": "#ffb59a",
+                        "secondary": "#575e70",
+                        "surface-container-highest": "#dee4e1",
+                        "on-secondary": "#ffffff",
+                        "surface-dim": "#d6dbd9",
+                        "primary": "#00685f",
+                        "on-tertiary-fixed": "#370e00",
+                        "error-container": "#ffdad6",
+                        "secondary-fixed-dim": "#c0c6db",
+                        "on-primary": "#ffffff",
+                        "on-background": "#171d1c",
+                        "surface-tint": "#006a61",
+                        "surface-container-low": "#f0f5f2",
+                        "on-primary-container": "#f4fffc",
+                        "surface-container": "#eaefed",
+                        "on-primary-fixed-variant": "#005049",
+                        "inverse-on-surface": "#edf2f0"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "md": "16px",
+                        "margin-mobile": "16px",
+                        "sm": "8px",
+                        "base": "4px",
+                        "gutter": "16px",
+                        "xs": "4px",
+                        "lg": "24px",
+                        "xl": "32px",
+                        "margin-desktop": "48px"
+                    },
+                    "fontFamily": {
+                        "label-sm": ["Inter"],
+                        "headline-lg-mobile": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "headline-lg": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "body-md": ["Inter"],
+                        "label-md": ["Inter"]
+                    },
+                    "fontSize": {
+                        "label-sm": ["11px", { "lineHeight": "14px", "letterSpacing": "0.03em", "fontWeight": "600" }],
+                        "headline-lg-mobile": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "700" }],
+                        "body-lg": ["16px", { "lineHeight": "24px", "letterSpacing": "0", "fontWeight": "400" }],
+                        "headline-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "headline-md": ["20px", { "lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "body-md": ["14px", { "lineHeight": "20px", "letterSpacing": "0", "fontWeight": "400" }],
+                        "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "500" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .material-symbols-outlined.fill {
+            font-variation-settings: 'FILL' 1;
+        }
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type="number"] {
+            -moz-appearance: textfield;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background min-h-screen flex flex-col items-center justify-center font-body-md antialiased selection:bg-primary/20 selection:text-primary">
+<!-- Top App Bar (Simplified for Onboarding) -->
+<header class="fixed top-0 w-full flex justify-between items-center px-margin-mobile h-16 bg-surface dark:bg-inverse-surface z-50">
+<button aria-label="Go back" class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-surface-variant/50 transition-colors">
+<span class="material-symbols-outlined text-on-surface">arrow_back</span>
+</button>
+<span class="font-headline-md text-headline-md font-bold text-primary dark:text-primary-fixed-dim">Flousy</span>
+<div class="w-10 h-10"></div> <!-- Spacer for balance -->
+</header>
+<!-- Main Content Canvas -->
+<main class="w-full max-w-[600px] px-margin-mobile pt-24 pb-32 flex-grow flex flex-col justify-center">
+<!-- Progress Indicator -->
+<div class="mb-xl w-full">
+<div class="flex justify-between items-center mb-sm">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Step 1 of 5</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">20%</span>
+</div>
+<div class="h-2 w-full bg-surface-variant rounded-full overflow-hidden">
+<div class="h-full bg-primary rounded-full" style="width: 20%;"></div>
+</div>
+</div>
+<!-- Headline & Description -->
+<div class="mb-xl text-center md:text-start">
+<h1 class="font-headline-lg-mobile text-headline-lg-mobile md:font-headline-lg md:text-headline-lg text-on-surface mb-sm">
+                What is your monthly income?
+            </h1>
+<p class="font-body-md text-body-md text-on-surface-variant">
+                We use this to set up your baseline budget and recommend saving goals.
+            </p>
+</div>
+<!-- Input Area (Bento-style focused card) -->
+<div class="bg-surface rounded-xl border border-outline-variant p-lg shadow-[0_4px_24px_rgba(0,0,0,0.04)] mb-xl">
+<label class="font-label-md text-label-md text-on-surface-variant block mb-sm" for="monthly-income">Average Monthly Income</label>
+<div class="relative flex items-center">
+<!-- Currency Selector (LHS in LTR, RTL aware) -->
+<div class="absolute inset-y-0 start-0 flex items-center">
+<select class="h-full py-0 pl-md pr-8 border-transparent bg-transparent text-on-surface-variant focus:ring-0 font-headline-md text-headline-md cursor-pointer outline-none appearance-none" id="currency" name="currency">
+<option value="MAD">MAD</option>
+<option value="USD">USD</option>
+<option value="EUR">EUR</option>
+</select>
+<span class="material-symbols-outlined absolute right-2 pointer-events-none text-on-surface-variant" style="font-size: 20px;">expand_more</span>
+</div>
+<!-- Numeric Input -->
+<input class="block w-full rounded-lg border-outline-variant bg-surface-container-low py-4 pl-32 pr-md text-end font-headline-lg-mobile text-headline-lg-mobile md:font-headline-lg md:text-headline-lg text-on-surface focus:border-primary focus:ring-primary focus:ring-1 transition-all placeholder:text-outline-variant/50" id="monthly-income" min="0" name="monthly-income" placeholder="0.00" step="100" type="number">
+</div>
+<!-- Quick Suggestion Chips -->
+<div class="mt-lg flex flex-wrap gap-sm justify-center md:justify-start">
+<button class="px-md py-sm rounded-full border border-outline-variant text-on-surface-variant font-label-sm text-label-sm hover:bg-surface-variant/20 hover:border-primary hover:text-primary transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2">5,000</button>
+<button class="px-md py-sm rounded-full border border-outline-variant text-on-surface-variant font-label-sm text-label-sm hover:bg-surface-variant/20 hover:border-primary hover:text-primary transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2">10,000</button>
+<button class="px-md py-sm rounded-full border border-outline-variant text-on-surface-variant font-label-sm text-label-sm hover:bg-surface-variant/20 hover:border-primary hover:text-primary transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2">15,000</button>
+</div>
+</div>
+</main>
+<!-- Bottom Action Area (Fixed for mobile, static for desktop) -->
+<div class="fixed bottom-0 left-0 w-full p-margin-mobile bg-gradient-to-t from-background via-background to-transparent md:static md:bg-none md:p-0 md:mt-auto md:mb-margin-desktop md:max-w-[600px] z-40">
+<button class="w-full bg-primary text-on-primary py-4 rounded-xl font-headline-md text-headline-md hover:bg-primary-container transition-colors shadow-[0_8px_16px_rgba(0,104,95,0.12)] focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 flex justify-center items-center gap-sm">
+            Continue
+            <span class="material-symbols-outlined rtl:rotate-180">arrow_forward</span>
+</button>
+</div>
+</body></html>

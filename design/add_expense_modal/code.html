@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Add Variable Expense - Flousy</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "inverse-primary": "#6bd8cb",
+                        "tertiary-fixed": "#ffdbce",
+                        "on-tertiary-fixed-variant": "#773215",
+                        "surface-container-high": "#e4e9e7",
+                        "on-primary-container": "#f4fffc",
+                        "on-primary": "#ffffff",
+                        "on-error": "#ffffff",
+                        "on-secondary-container": "#5c6274",
+                        "primary-fixed": "#89f5e7",
+                        "on-surface-variant": "#3d4947",
+                        "primary-container": "#008378",
+                        "outline": "#6d7a77",
+                        "tertiary-container": "#b05e3d",
+                        "secondary-container": "#d9dff5",
+                        "on-primary-fixed-variant": "#005049",
+                        "error-container": "#ffdad6",
+                        "surface": "#f5faf8",
+                        "surface-bright": "#f5faf8",
+                        "surface-tint": "#006a61",
+                        "inverse-on-surface": "#edf2f0",
+                        "on-tertiary": "#ffffff",
+                        "on-secondary": "#ffffff",
+                        "surface-dim": "#d6dbd9",
+                        "on-error-container": "#93000a",
+                        "inverse-surface": "#2c3130",
+                        "tertiary-fixed-dim": "#ffb59a",
+                        "surface-container-lowest": "#ffffff",
+                        "outline-variant": "#bcc9c6",
+                        "surface-variant": "#dee4e1",
+                        "on-primary-fixed": "#00201d",
+                        "secondary-fixed": "#dce2f7",
+                        "secondary-fixed-dim": "#c0c6db",
+                        "error": "#ba1a1a",
+                        "secondary": "#575e70",
+                        "primary-fixed-dim": "#6bd8cb",
+                        "surface-container-low": "#f0f5f2",
+                        "on-tertiary-container": "#fffbff",
+                        "tertiary": "#924628",
+                        "surface-container-highest": "#dee4e1",
+                        "background": "#f5faf8",
+                        "primary": "#00685f",
+                        "on-tertiary-fixed": "#370e00",
+                        "on-secondary-fixed": "#141b2b",
+                        "surface-container": "#eaefed",
+                        "on-secondary-fixed-variant": "#404758",
+                        "on-background": "#171d1c",
+                        "on-surface": "#171d1c"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px",
+                        "2xl": "1.5rem",
+                        "t-3xl": "1.5rem 1.5rem 0 0"
+                    },
+                    "spacing": {
+                        "margin-desktop": "48px",
+                        "sm": "8px",
+                        "md": "16px",
+                        "gutter": "16px",
+                        "xs": "4px",
+                        "xl": "32px",
+                        "base": "4px",
+                        "margin-mobile": "16px",
+                        "lg": "24px",
+                        "18": "4.5rem"
+                    },
+                    "fontFamily": {
+                        "headline-md": ["Inter"],
+                        "headline-lg": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "label-sm": ["Inter"],
+                        "headline-lg-mobile": ["Inter"],
+                        "body-md": ["Inter"],
+                        "label-md": ["Inter"]
+                    },
+                    "fontSize": {
+                        "headline-md": ["20px", { "lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "headline-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "body-lg": ["16px", { "lineHeight": "24px", "letterSpacing": "0", "fontWeight": "400" }],
+                        "label-sm": ["11px", { "lineHeight": "14px", "letterSpacing": "0.03em", "fontWeight": "600" }],
+                        "headline-lg-mobile": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "700" }],
+                        "body-md": ["14px", { "lineHeight": "20px", "letterSpacing": "0", "fontWeight": "400" }],
+                        "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "500" }],
+                        "display-sm": ["36px", { "lineHeight": "44px", "letterSpacing": "0", "fontWeight": "400" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .slide-up {
+            animation: slideUp 0.3s ease-out forwards;
+        }
+        @keyframes slideUp {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background font-body-lg overflow-hidden h-screen flex flex-col">
+<!-- Faux Background Content (Dashboard) -->
+<div class="flex-1 opacity-40 blur-sm pointer-events-none p-margin-mobile flex flex-col gap-lg">
+<header class="flex justify-between items-center w-full h-16 bg-surface dark:bg-inverse-surface text-primary dark:text-primary-fixed-dim font-headline-md text-headline-md">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">arrow_back</span>
+<span class="font-bold">Flousy</span>
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">account_circle</span>
+</header>
+<div class="h-32 bg-surface-container rounded-2xl p-lg flex flex-col justify-center shadow-sm border border-surface-variant">
+<div class="font-body-md text-on-surface-variant">Total Balance</div>
+<div class="font-headline-lg-mobile text-headline-lg-mobile text-on-surface">$2,450.00</div>
+</div>
+<div class="grid grid-cols-2 gap-gutter">
+<div class="h-24 bg-surface-container rounded-2xl p-md shadow-sm border border-surface-variant"></div>
+<div class="h-24 bg-surface-container rounded-2xl p-md shadow-sm border border-surface-variant"></div>
+</div>
+</div>
+<!-- Modal Backdrop -->
+<div class="fixed inset-0 bg-surface/60 backdrop-blur-[8px] z-40 flex items-end sm:items-center justify-center transition-opacity">
+<!-- Modal Container (Sliding from bottom on mobile, centered on desktop) -->
+<div class="w-full sm:w-[480px] bg-surface rounded-t-3xl sm:rounded-2xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.12)] border border-surface-variant z-50 flex flex-col slide-up h-[751px] sm:h-auto max-h-[795px]">
+<!-- Handle for mobile -->
+<div class="w-full flex justify-center pt-md pb-xs sm:hidden">
+<div class="w-12 h-1.5 bg-outline-variant rounded-full"></div>
+</div>
+<!-- Modal Header -->
+<div class="px-lg pt-sm sm:pt-lg pb-md flex justify-between items-center border-b border-surface-variant">
+<h2 class="font-headline-md text-headline-md text-on-surface">Add Expense</h2>
+<button class="p-2 text-on-surface-variant hover:bg-surface-variant/50 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">close</span>
+</button>
+</div>
+<!-- Modal Content (Scrollable) -->
+<div class="flex-1 overflow-y-auto px-lg py-lg flex flex-col gap-xl">
+<!-- Amount Input -->
+<div class="flex flex-col items-center justify-center py-sm">
+<label class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider mb-sm">Amount</label>
+<div class="flex items-center text-primary font-bold">
+<span class="text-headline-lg-mobile mr-xs">$</span>
+<input autofocus="" class="bg-transparent border-none text-[48px] leading-[1.1] text-center w-full max-w-[200px] text-on-surface focus:ring-0 p-0 placeholder:text-outline-variant" placeholder="0.00" type="number"/>
+</div>
+</div>
+<!-- Fields Grid -->
+<div class="flex flex-col gap-lg">
+<!-- Category Selection -->
+<div class="flex flex-col gap-xs">
+<label class="font-label-sm text-label-sm text-on-surface-variant">CATEGORY</label>
+<button class="flex items-center justify-between w-full p-md bg-surface border border-outline-variant rounded-xl hover:border-primary focus:border-primary focus:ring-1 focus:ring-primary transition-all text-left group">
+<div class="flex items-center gap-md">
+<div class="w-10 h-10 rounded-full bg-secondary-container text-on-secondary-container flex items-center justify-center group-hover:bg-primary-container group-hover:text-on-primary-container transition-colors">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">category</span>
+</div>
+<span class="font-body-lg text-body-lg text-on-surface">Select Category</span>
+</div>
+<span class="material-symbols-outlined text-outline-variant group-hover:text-primary transition-colors" style="font-variation-settings: 'FILL' 0;">chevron_right</span>
+</button>
+</div>
+<!-- Money Place / Account -->
+<div class="flex flex-col gap-xs">
+<label class="font-label-sm text-label-sm text-on-surface-variant">MONEY PLACE</label>
+<div class="grid grid-cols-3 gap-sm">
+<label class="cursor-pointer relative">
+<input checked="" class="peer sr-only" name="account" type="radio" value="bank"/>
+<div class="flex flex-col items-center gap-2 p-md rounded-xl border border-outline-variant peer-checked:border-primary peer-checked:bg-primary/5 hover:bg-surface-variant/30 transition-all">
+<span class="material-symbols-outlined text-outline peer-checked:text-primary" style="font-variation-settings: 'FILL' 0;">account_balance</span>
+<span class="font-label-md text-label-md text-on-surface peer-checked:text-primary">Bank</span>
+</div>
+</label>
+<label class="cursor-pointer relative">
+<input class="peer sr-only" name="account" type="radio" value="wallet"/>
+<div class="flex flex-col items-center gap-2 p-md rounded-xl border border-outline-variant peer-checked:border-primary peer-checked:bg-primary/5 hover:bg-surface-variant/30 transition-all">
+<span class="material-symbols-outlined text-outline peer-checked:text-primary" style="font-variation-settings: 'FILL' 0;">account_balance_wallet</span>
+<span class="font-label-md text-label-md text-on-surface peer-checked:text-primary">Wallet</span>
+</div>
+</label>
+<label class="cursor-pointer relative">
+<input class="peer sr-only" name="account" type="radio" value="home"/>
+<div class="flex flex-col items-center gap-2 p-md rounded-xl border border-outline-variant peer-checked:border-primary peer-checked:bg-primary/5 hover:bg-surface-variant/30 transition-all">
+<span class="material-symbols-outlined text-outline peer-checked:text-primary" style="font-variation-settings: 'FILL' 0;">home</span>
+<span class="font-label-md text-label-md text-on-surface peer-checked:text-primary">Home</span>
+</div>
+</label>
+</div>
+</div>
+<!-- Date & Time -->
+<div class="flex flex-col gap-xs">
+<label class="font-label-sm text-label-sm text-on-surface-variant">DATE</label>
+<div class="relative">
+<div class="absolute inset-y-0 left-0 pl-md flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-outline-variant" style="font-variation-settings: 'FILL' 0;">calendar_today</span>
+</div>
+<input class="w-full pl-12 pr-md py-md bg-surface border border-outline-variant rounded-xl font-body-lg text-body-lg text-on-surface focus:border-primary focus:ring-1 focus:ring-primary transition-all" type="date"/>
+</div>
+</div>
+<!-- Note -->
+<div class="flex flex-col gap-xs">
+<label class="font-label-sm text-label-sm text-on-surface-variant">NOTE (OPTIONAL)</label>
+<textarea class="w-full p-md bg-surface border border-outline-variant rounded-xl font-body-lg text-body-lg text-on-surface focus:border-primary focus:ring-1 focus:ring-primary transition-all resize-none" placeholder="What was this for?" rows="2"></textarea>
+</div>
+</div>
+</div>
+<!-- Modal Footer (Fixed at bottom) -->
+<div class="p-lg border-t border-surface-variant bg-surface rounded-b-xl pb-margin-mobile sm:pb-lg">
+<button class="w-full bg-primary text-on-primary font-headline-md text-headline-md py-4 rounded-xl hover:bg-primary-container focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary shadow-sm hover:shadow-md transition-all active:scale-[0.98]">
+                    Add Expense
+                </button>
+</div>
+</div>
+</div>
+</body></html>

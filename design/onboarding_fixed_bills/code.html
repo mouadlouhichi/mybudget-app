@@ -1,0 +1,233 @@
+<!DOCTYPE html><html class="light" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Flousy - Onboarding Step 3: Fixed Bills</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary-container": "#008378",
+                        "surface-variant": "#dee4e1",
+                        "surface-container-high": "#e4e9e7",
+                        "primary-fixed-dim": "#6bd8cb",
+                        "outline-variant": "#bcc9c6",
+                        "surface": "#f5faf8",
+                        "on-tertiary-fixed-variant": "#773215",
+                        "tertiary-fixed": "#ffdbce",
+                        "on-secondary-container": "#5c6274",
+                        "primary-fixed": "#89f5e7",
+                        "on-primary-fixed": "#00201d",
+                        "outline": "#6d7a77",
+                        "on-surface-variant": "#3d4947",
+                        "on-tertiary": "#ffffff",
+                        "on-secondary-fixed-variant": "#404758",
+                        "on-tertiary-container": "#fffbff",
+                        "on-error": "#ffffff",
+                        "surface-bright": "#f5faf8",
+                        "secondary-fixed": "#dce2f7",
+                        "secondary-container": "#d9dff5",
+                        "inverse-primary": "#6bd8cb",
+                        "on-secondary-fixed": "#141b2b",
+                        "on-error-container": "#93000a",
+                        "error": "#ba1a1a",
+                        "tertiary": "#924628",
+                        "surface-container-lowest": "#ffffff",
+                        "inverse-surface": "#2c3130",
+                        "background": "#f5faf8",
+                        "on-surface": "#171d1c",
+                        "tertiary-container": "#b05e3d",
+                        "tertiary-fixed-dim": "#ffb59a",
+                        "secondary": "#575e70",
+                        "surface-container-highest": "#dee4e1",
+                        "on-secondary": "#ffffff",
+                        "surface-dim": "#d6dbd9",
+                        "primary": "#00685f",
+                        "on-tertiary-fixed": "#370e00",
+                        "error-container": "#ffdad6",
+                        "secondary-fixed-dim": "#c0c6db",
+                        "on-primary": "#ffffff",
+                        "on-background": "#171d1c",
+                        "surface-tint": "#006a61",
+                        "surface-container-low": "#f0f5f2",
+                        "on-primary-container": "#f4fffc",
+                        "surface-container": "#eaefed",
+                        "on-primary-fixed-variant": "#005049",
+                        "inverse-on-surface": "#edf2f0"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "md": "16px",
+                        "margin-mobile": "16px",
+                        "sm": "8px",
+                        "base": "4px",
+                        "gutter": "16px",
+                        "xs": "4px",
+                        "lg": "24px",
+                        "xl": "32px",
+                        "margin-desktop": "48px"
+                    },
+                    "fontFamily": {
+                        "label-sm": ["Inter"],
+                        "headline-lg-mobile": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "headline-lg": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "body-md": ["Inter"],
+                        "label-md": ["Inter"]
+                    },
+                    "fontSize": {
+                        "label-sm": ["11px", { "lineHeight": "14px", "letterSpacing": "0.03em", "fontWeight": "600" }],
+                        "headline-lg-mobile": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "700" }],
+                        "body-lg": ["16px", { "lineHeight": "24px", "letterSpacing": "0", "fontWeight": "400" }],
+                        "headline-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "headline-md": ["20px", { "lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "body-md": ["14px", { "lineHeight": "20px", "letterSpacing": "0", "fontWeight": "400" }],
+                        "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "500" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body { background-color: #f5faf8; }
+        .ambient-shadow { box-shadow: 0 4px 24px rgba(0, 0, 0, 0.04); }
+        .ghost-input:focus { border-color: #00685f; outline: none; box-shadow: 0 0 0 1px #00685f; }
+    </style>
+</head>
+<body class="bg-background text-on-background min-h-screen flex flex-col font-body-md antialiased md:items-center">
+<!-- Top Navigation App Bar (Minimal for Onboarding) -->
+<header class="flex justify-between items-center w-full px-margin-mobile md:px-margin-desktop h-16 bg-surface flat no shadows w-full max-w-3xl">
+<button class="text-primary hover:opacity-80 transition-opacity flex items-center justify-center p-2 rounded-full hover:bg-surface-variant/20 transition-colors">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">arrow_back</span>
+</button>
+<span class="font-headline-md text-headline-md font-bold text-primary">Flousy</span>
+<div class="w-10"></div> <!-- Spacer for balance -->
+</header>
+<!-- Main Content Area -->
+<main class="flex-1 w-full max-w-3xl px-margin-mobile md:px-margin-desktop py-lg flex flex-col">
+<!-- Progress Indicator -->
+<div class="w-full mb-lg">
+<div class="flex justify-between items-center mb-sm">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Step 3 of 5</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant font-medium">Fixed Bills</span>
+</div>
+<div class="h-2 w-full bg-surface-container rounded-full overflow-hidden">
+<div class="h-full bg-primary rounded-full transition-all duration-500 ease-in-out" style="width: 60%;"></div>
+</div>
+</div>
+<!-- Header -->
+<div class="mb-xl">
+<h1 class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-on-surface mb-xs">Add your monthly bills</h1>
+<p class="font-body-md text-body-md text-on-surface-variant">Enter recurring expenses like rent, utilities, and subscriptions.</p>
+</div>
+<!-- Add Bill Form Card -->
+<div class="bg-surface rounded-xl border border-outline-variant/30 ambient-shadow p-lg mb-xl">
+<form class="space-y-md">
+<div>
+<label class="block font-label-md text-label-md text-on-surface mb-xs" for="bill-name">Bill Name</label>
+<input class="w-full bg-surface border border-outline-variant rounded-lg px-4 py-3 font-body-md text-body-md text-on-surface placeholder:text-on-surface-variant/50 ghost-input transition-colors" id="bill-name" placeholder="e.g. Rent, Netflix, Electricity" type="text">
+</div>
+<div class="grid grid-cols-2 gap-gutter">
+<div>
+<label class="block font-label-md text-label-md text-on-surface mb-xs" for="bill-amount">Amount</label>
+<div class="relative">
+<span class="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant font-body-md text-body-md">$</span>
+<input class="w-full bg-surface border border-outline-variant rounded-lg pl-8 pr-4 py-3 font-body-md text-body-md text-on-surface placeholder:text-on-surface-variant/50 ghost-input transition-colors" id="bill-amount" placeholder="0.00" type="number">
+</div>
+</div>
+<div>
+<label class="block font-label-md text-label-md text-on-surface mb-xs" for="bill-category">Category</label>
+<div class="relative">
+<select class="w-full bg-surface border border-outline-variant rounded-lg pl-4 pr-10 py-3 font-body-md text-body-md text-on-surface appearance-none ghost-input transition-colors" id="bill-category">
+<option disabled="" selected="" value="">Select</option>
+<option value="housing">Housing</option>
+<option value="utilities">Utilities</option>
+<option value="subscriptions">Subscriptions</option>
+<option value="insurance">Insurance</option>
+</select>
+<span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none" style="font-variation-settings: 'FILL' 0;">expand_more</span>
+</div>
+</div>
+</div>
+<div class="flex justify-end pt-sm">
+<button class="flex items-center gap-xs px-4 py-2 bg-primary-container/10 text-primary hover:bg-primary-container/20 rounded-lg font-label-md text-label-md transition-colors" type="button">
+<span class="material-symbols-outlined text-[18px]" style="font-variation-settings: 'FILL' 0;">add</span>
+                        Add Bill
+                    </button>
+</div>
+</form>
+</div>
+<!-- Added Bills List -->
+<div class="flex-1 mb-xl">
+<h2 class="font-headline-md text-headline-md text-on-surface mb-md">Added Bills</h2>
+<div class="space-y-sm">
+<!-- Bill Item 1 -->
+<div class="flex items-center justify-between p-4 bg-surface rounded-xl border border-outline-variant/30 ambient-shadow">
+<div class="flex items-center gap-md">
+<div class="w-10 h-10 rounded-full bg-tertiary-container/10 flex items-center justify-center text-tertiary-container">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">home</span>
+</div>
+<div>
+<p class="font-body-md text-body-md font-medium text-on-surface">Rent</p>
+<div class="flex items-center gap-xs mt-1">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary-container"></span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Housing</span>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-md">
+<span class="font-body-lg text-body-lg font-semibold text-on-surface">$1,500.00</span>
+<button class="text-on-surface-variant hover:text-error transition-colors p-1">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 0;">close</span>
+</button>
+</div>
+</div>
+<!-- Bill Item 2 -->
+<div class="flex items-center justify-between p-4 bg-surface rounded-xl border border-outline-variant/30 ambient-shadow">
+<div class="flex items-center gap-md">
+<div class="w-10 h-10 rounded-full bg-primary-container/10 flex items-center justify-center text-primary-container">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">bolt</span>
+</div>
+<div>
+<p class="font-body-md text-body-md font-medium text-on-surface">Electricity</p>
+<div class="flex items-center gap-xs mt-1">
+<span class="w-1.5 h-1.5 rounded-full bg-primary-container"></span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Utilities</span>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-md">
+<span class="font-body-lg text-body-lg font-semibold text-on-surface">$120.00</span>
+<button class="text-on-surface-variant hover:text-error transition-colors p-1">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 0;">close</span>
+</button>
+</div>
+</div>
+</div>
+<div class="mt-md flex justify-between items-center p-4 bg-surface-container-low rounded-lg border border-outline-variant/20">
+<span class="font-body-md text-body-md text-on-surface-variant">Total Fixed Bills</span>
+<span class="font-headline-md text-headline-md text-on-surface">$1,620.00</span>
+</div>
+</div>
+<!-- Actions -->
+<div class="mt-auto pt-lg border-t border-outline-variant/30 flex justify-between items-center pb-xl md:pb-lg">
+<button class="px-6 py-3 text-primary font-label-md text-label-md hover:bg-surface-variant/20 rounded-xl transition-colors">
+                Skip for now
+            </button>
+<button class="px-8 py-3 bg-primary text-on-primary font-label-md text-label-md rounded-xl hover:opacity-90 transition-opacity shadow-[0_4px_12px_rgba(0,104,95,0.2)]">
+                Continue
+            </button>
+</div>
+</main>
+</body></html>

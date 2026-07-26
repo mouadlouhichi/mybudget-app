@@ -1,0 +1,281 @@
+<!DOCTYPE html><html class="light" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Flousy - Choose Strategy</title>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<style>
+        .material-symbols-outlined {
+            font-family: 'Material Symbols Outlined';
+            font-weight: normal;
+            font-style: normal;
+            font-size: 24px;
+            line-height: 1;
+            letter-spacing: normal;
+            text-transform: none;
+            display: inline-block;
+            white-space: nowrap;
+            word-wrap: normal;
+            direction: ltr;
+            -webkit-font-feature-settings: 'liga';
+            -webkit-font-smoothing: antialiased;
+        }
+        
+        /* Hide scrollbar for clean UI but keep functionality */
+        ::-webkit-scrollbar {
+            display: none;
+        }
+        * {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+<!-- Tailwind CSS & Config -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary-container": "#008378",
+                        "surface-variant": "#dee4e1",
+                        "surface-container-high": "#e4e9e7",
+                        "primary-fixed-dim": "#6bd8cb",
+                        "outline-variant": "#bcc9c6",
+                        "surface": "#f5faf8",
+                        "on-tertiary-fixed-variant": "#773215",
+                        "tertiary-fixed": "#ffdbce",
+                        "on-secondary-container": "#5c6274",
+                        "primary-fixed": "#89f5e7",
+                        "on-primary-fixed": "#00201d",
+                        "outline": "#6d7a77",
+                        "on-surface-variant": "#3d4947",
+                        "on-tertiary": "#ffffff",
+                        "on-secondary-fixed-variant": "#404758",
+                        "on-tertiary-container": "#fffbff",
+                        "on-error": "#ffffff",
+                        "surface-bright": "#f5faf8",
+                        "secondary-fixed": "#dce2f7",
+                        "secondary-container": "#d9dff5",
+                        "inverse-primary": "#6bd8cb",
+                        "on-secondary-fixed": "#141b2b",
+                        "on-error-container": "#93000a",
+                        "error": "#ba1a1a",
+                        "tertiary": "#924628",
+                        "surface-container-lowest": "#ffffff",
+                        "inverse-surface": "#2c3130",
+                        "background": "#f5faf8",
+                        "on-surface": "#171d1c",
+                        "tertiary-container": "#b05e3d",
+                        "tertiary-fixed-dim": "#ffb59a",
+                        "secondary": "#575e70",
+                        "surface-container-highest": "#dee4e1",
+                        "on-secondary": "#ffffff",
+                        "surface-dim": "#d6dbd9",
+                        "primary": "#00685f",
+                        "on-tertiary-fixed": "#370e00",
+                        "error-container": "#ffdad6",
+                        "secondary-fixed-dim": "#c0c6db",
+                        "on-primary": "#ffffff",
+                        "on-background": "#171d1c",
+                        "surface-tint": "#006a61",
+                        "surface-container-low": "#f0f5f2",
+                        "on-primary-container": "#f4fffc",
+                        "surface-container": "#eaefed",
+                        "on-primary-fixed-variant": "#005049",
+                        "inverse-on-surface": "#edf2f0"
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    spacing: {
+                        "md": "16px",
+                        "margin-mobile": "16px",
+                        "sm": "8px",
+                        "base": "4px",
+                        "gutter": "16px",
+                        "xs": "4px",
+                        "lg": "24px",
+                        "xl": "32px",
+                        "margin-desktop": "48px"
+                    },
+                    fontFamily: {
+                        "label-sm": ["Inter", "sans-serif"],
+                        "headline-lg-mobile": ["Inter", "sans-serif"],
+                        "body-lg": ["Inter", "sans-serif"],
+                        "headline-lg": ["Inter", "sans-serif"],
+                        "headline-md": ["Inter", "sans-serif"],
+                        "body-md": ["Inter", "sans-serif"],
+                        "label-md": ["Inter", "sans-serif"]
+                    },
+                    fontSize: {
+                        "label-sm": ["11px", { lineHeight: "14px", letterSpacing: "0.03em", fontWeight: "600" }],
+                        "headline-lg-mobile": ["24px", { lineHeight: "32px", letterSpacing: "-0.01em", fontWeight: "700" }],
+                        "body-lg": ["16px", { lineHeight: "24px", letterSpacing: "0", fontWeight: "400" }],
+                        "headline-lg": ["32px", { lineHeight: "40px", letterSpacing: "-0.02em", fontWeight: "700" }],
+                        "headline-md": ["20px", { lineHeight: "28px", letterSpacing: "-0.01em", fontWeight: "600" }],
+                        "body-md": ["14px", { lineHeight: "20px", letterSpacing: "0", fontWeight: "400" }],
+                        "label-md": ["12px", { lineHeight: "16px", letterSpacing: "0.05em", fontWeight: "500" }]
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-background text-on-background font-body-md text-body-md min-h-screen flex flex-col antialiased selection:bg-primary-container selection:text-on-primary-container">
+<!-- Main Container - Mobile Optimized -->
+<main class="w-full max-w-md mx-auto flex-1 flex flex-col relative pb-32">
+<!-- Header Section -->
+<header class="px-margin-mobile pt-lg pb-md sticky top-0 bg-background/90 backdrop-blur-md z-10">
+<!-- Progress Row -->
+<div class="flex items-center gap-4 mb-lg">
+<button aria-label="Go back" class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-surface-variant/50 transition-colors -ml-2">
+<span class="material-symbols-outlined text-on-surface">arrow_back</span>
+</button>
+<div class="flex-1 flex gap-1">
+<div class="h-1.5 flex-1 bg-primary rounded-full"></div>
+<div class="h-1.5 flex-1 bg-primary rounded-full"></div>
+<div class="h-1.5 flex-1 bg-primary rounded-full"></div>
+<div class="h-1.5 flex-1 bg-primary rounded-full"></div>
+<div class="h-1.5 flex-1 bg-surface-variant rounded-full"></div>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant w-8 text-right">4/5</span>
+</div>
+<!-- Typography Header -->
+<h1 class="font-headline-lg-mobile text-headline-lg-mobile md:font-headline-lg md:text-headline-lg text-on-surface mb-2">Choose your strategy</h1>
+<p class="font-body-md text-body-md text-on-surface-variant">Select a foundation for your financial goals. You can always adjust this later.</p>
+</header>
+<!-- Strategy Selection Cards -->
+<section class="px-margin-mobile flex flex-col gap-md">
+<!-- Card 1: 50/30/20 (Selected by default) -->
+<div class="strategy-card active border border-primary ring-1 ring-primary bg-surface-container-low rounded-xl p-lg cursor-pointer transition-all duration-200 shadow-[0_4px_12px_rgba(0,0,0,0.04)]" onclick="selectStrategy(this)">
+<div class="flex justify-between items-start mb-sm">
+<div>
+<h2 class="font-headline-md text-headline-md text-on-surface">50/30/20 Rule</h2>
+<p class="font-body-md text-body-md text-on-surface-variant mt-1">Balanced approach splitting income into Needs (50%), Wants (30%), and Savings (20%).</p>
+</div>
+<span class="material-symbols-outlined text-primary radio-icon mt-1" style="font-variation-settings: 'FILL' 1;">radio_button_checked</span>
+</div>
+<!-- Visual Bar -->
+<div class="mt-md flex flex-col gap-2">
+<div class="flex h-2.5 rounded-full overflow-hidden w-full bg-surface-variant">
+<div class="w-[50%] bg-primary" title="50% Needs"></div>
+<div class="w-[30%] bg-tertiary-container" title="30% Wants"></div>
+<div class="w-[20%] bg-secondary-fixed" title="20% Savings"></div>
+</div>
+<div class="flex justify-between font-label-sm text-label-sm text-on-surface-variant px-1">
+<span>Needs</span>
+<span>Wants</span>
+<span>Save</span>
+</div>
+</div>
+</div>
+<!-- Card 2: Zero-Based Budgeting -->
+<div class="strategy-card border border-outline-variant bg-surface rounded-xl p-lg cursor-pointer transition-all duration-200 hover:border-outline hover:shadow-[0_4px_12px_rgba(0,0,0,0.02)]" onclick="selectStrategy(this)">
+<div class="flex justify-between items-start mb-sm">
+<div>
+<h2 class="font-headline-md text-headline-md text-on-surface">Zero-Based Budgeting</h2>
+<p class="font-body-md text-body-md text-on-surface-variant mt-1">Give every dollar a specific job until your income minus expenses equals exactly zero.</p>
+</div>
+<span class="material-symbols-outlined text-outline radio-icon mt-1">radio_button_unchecked</span>
+</div>
+<!-- Visual Bar -->
+<div class="mt-md">
+<div class="flex gap-1 h-2.5 w-full">
+<div class="flex-1 bg-primary rounded-l-full"></div>
+<div class="flex-1 bg-primary"></div>
+<div class="flex-1 bg-primary"></div>
+<div class="flex-1 bg-primary"></div>
+<div class="flex-1 bg-primary"></div>
+<div class="flex-1 bg-primary rounded-r-full"></div>
+</div>
+<div class="text-center font-label-sm text-label-sm text-on-surface-variant mt-2">Every dollar allocated ($0 left)</div>
+</div>
+</div>
+<!-- Card 3: Envelope System -->
+<div class="strategy-card border border-outline-variant bg-surface rounded-xl p-lg cursor-pointer transition-all duration-200 hover:border-outline hover:shadow-[0_4px_12px_rgba(0,0,0,0.02)]" onclick="selectStrategy(this)">
+<div class="flex justify-between items-start mb-sm">
+<div>
+<h2 class="font-headline-md text-headline-md text-on-surface">Envelope System</h2>
+<p class="font-body-md text-body-md text-on-surface-variant mt-1">Allocate specific amounts to categories. When a category is empty, spending stops.</p>
+</div>
+<span class="material-symbols-outlined text-outline radio-icon mt-1">radio_button_unchecked</span>
+</div>
+<!-- Visual -->
+<div class="mt-md flex gap-2 flex-wrap">
+<div class="flex-1 min-w-[70px] h-8 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center">
+<div class="w-1/2 h-1.5 rounded-full bg-primary/50"></div>
+</div>
+<div class="flex-1 min-w-[70px] h-8 rounded-lg bg-tertiary-container/10 border border-tertiary-container/20 flex items-center justify-center">
+<div class="w-3/4 h-1.5 rounded-full bg-tertiary-container/50"></div>
+</div>
+<div class="flex-1 min-w-[70px] h-8 rounded-lg bg-secondary/10 border border-secondary/20 flex items-center justify-center">
+<div class="w-1/4 h-1.5 rounded-full bg-secondary/50"></div>
+</div>
+</div>
+</div>
+<!-- Card 4: Pay-Yourself-First -->
+<div class="strategy-card border border-outline-variant bg-surface rounded-xl p-lg cursor-pointer transition-all duration-200 hover:border-outline hover:shadow-[0_4px_12px_rgba(0,0,0,0.02)]" onclick="selectStrategy(this)">
+<div class="flex justify-between items-start mb-sm">
+<div>
+<h2 class="font-headline-md text-headline-md text-on-surface">Pay-Yourself-First</h2>
+<p class="font-body-md text-body-md text-on-surface-variant mt-1">Prioritize saving a specific amount first, then spend whatever is left without tracking details.</p>
+</div>
+<span class="material-symbols-outlined text-outline radio-icon mt-1">radio_button_unchecked</span>
+</div>
+<!-- Visual Bar -->
+<div class="mt-md relative h-2.5 rounded-full bg-surface-variant overflow-hidden w-full flex">
+<div class="w-1/3 bg-primary h-full z-10 relative shadow-[2px_0_4px_rgba(0,0,0,0.1)]"></div>
+<div class="flex-1 bg-surface-container-highest h-full"></div>
+</div>
+<div class="flex font-label-sm text-label-sm text-on-surface-variant px-1 mt-2">
+<span class="w-1/3 text-primary font-bold">Save First</span>
+<span class="flex-1 text-center">Spend the rest</span>
+</div>
+</div>
+</section>
+<!-- Fixed Bottom Action -->
+<div class="fixed bottom-0 left-0 w-full p-margin-mobile bg-gradient-to-t from-background via-background to-transparent pt-xl z-20 flex justify-center">
+<div class="w-full max-w-md">
+<button class="w-full bg-primary text-on-primary font-label-md text-label-md py-4 rounded-xl flex items-center justify-center transition-transform active:scale-[0.98] shadow-md hover:shadow-lg hover:bg-surface-tint">
+                    Continue
+                </button>
+</div>
+</div>
+</main>
+<script>
+        function selectStrategy(selectedCard) {
+            // Get all cards
+            const cards = document.querySelectorAll('.strategy-card');
+            
+            cards.forEach(card => {
+                // Reset to default unselected state
+                card.classList.remove('active', 'border-primary', 'ring-1', 'ring-primary', 'bg-surface-container-low', 'shadow-[0_4px_12px_rgba(0,0,0,0.04)]');
+                card.classList.add('border-outline-variant', 'bg-surface', 'hover:border-outline');
+                
+                // Reset icon
+                const icon = card.querySelector('.radio-icon');
+                icon.textContent = 'radio_button_unchecked';
+                icon.classList.remove('text-primary');
+                icon.classList.add('text-outline');
+                icon.style.fontVariationSettings = 'normal';
+            });
+
+            // Apply selected state to clicked card
+            selectedCard.classList.remove('border-outline-variant', 'bg-surface', 'hover:border-outline');
+            selectedCard.classList.add('active', 'border-primary', 'ring-1', 'ring-primary', 'bg-surface-container-low', 'shadow-[0_4px_12px_rgba(0,0,0,0.04)]');
+            
+            // Update icon
+            const selectedIcon = selectedCard.querySelector('.radio-icon');
+            selectedIcon.textContent = 'radio_button_checked';
+            selectedIcon.classList.remove('text-outline');
+            selectedIcon.classList.add('text-primary');
+            selectedIcon.style.fontVariationSettings = "'FILL' 1";
+        }
+    </script>
+</body></html>

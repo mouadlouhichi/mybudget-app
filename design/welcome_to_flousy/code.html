@@ -1,0 +1,245 @@
+<!DOCTYPE html><html class="light" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Flousy - Welcome</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "primary-container": "#008378",
+                    "surface-variant": "#dee4e1",
+                    "surface-container-high": "#e4e9e7",
+                    "primary-fixed-dim": "#6bd8cb",
+                    "outline-variant": "#bcc9c6",
+                    "surface": "#f5faf8",
+                    "on-tertiary-fixed-variant": "#773215",
+                    "tertiary-fixed": "#ffdbce",
+                    "on-secondary-container": "#5c6274",
+                    "primary-fixed": "#89f5e7",
+                    "on-primary-fixed": "#00201d",
+                    "outline": "#6d7a77",
+                    "on-surface-variant": "#3d4947",
+                    "on-tertiary": "#ffffff",
+                    "on-secondary-fixed-variant": "#404758",
+                    "on-tertiary-container": "#fffbff",
+                    "on-error": "#ffffff",
+                    "surface-bright": "#f5faf8",
+                    "secondary-fixed": "#dce2f7",
+                    "secondary-container": "#d9dff5",
+                    "inverse-primary": "#6bd8cb",
+                    "on-secondary-fixed": "#141b2b",
+                    "on-error-container": "#93000a",
+                    "error": "#ba1a1a",
+                    "tertiary": "#924628",
+                    "surface-container-lowest": "#ffffff",
+                    "inverse-surface": "#2c3130",
+                    "background": "#f5faf8",
+                    "on-surface": "#171d1c",
+                    "tertiary-container": "#b05e3d",
+                    "tertiary-fixed-dim": "#ffb59a",
+                    "secondary": "#575e70",
+                    "surface-container-highest": "#dee4e1",
+                    "on-secondary": "#ffffff",
+                    "surface-dim": "#d6dbd9",
+                    "primary": "#00685f",
+                    "on-tertiary-fixed": "#370e00",
+                    "error-container": "#ffdad6",
+                    "secondary-fixed-dim": "#c0c6db",
+                    "on-primary": "#ffffff",
+                    "on-background": "#171d1c",
+                    "surface-tint": "#006a61",
+                    "surface-container-low": "#f0f5f2",
+                    "on-primary-container": "#f4fffc",
+                    "surface-container": "#eaefed",
+                    "on-primary-fixed-variant": "#005049",
+                    "inverse-on-surface": "#edf2f0"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "md": "16px",
+                    "margin-mobile": "16px",
+                    "sm": "8px",
+                    "base": "4px",
+                    "gutter": "16px",
+                    "xs": "4px",
+                    "lg": "24px",
+                    "xl": "32px",
+                    "margin-desktop": "48px"
+            },
+            "fontFamily": {
+                    "label-sm": [
+                            "Inter"
+                    ],
+                    "headline-lg-mobile": [
+                            "Inter"
+                    ],
+                    "body-lg": [
+                            "Inter"
+                    ],
+                    "headline-lg": [
+                            "Inter"
+                    ],
+                    "headline-md": [
+                            "Inter"
+                    ],
+                    "body-md": [
+                            "Inter"
+                    ],
+                    "label-md": [
+                            "Inter"
+                    ]
+            },
+            "fontSize": {
+                    "label-sm": [
+                            "11px",
+                            {
+                                    "lineHeight": "14px",
+                                    "letterSpacing": "0.03em",
+                                    "fontWeight": "600"
+                            }
+                    ],
+                    "headline-lg-mobile": [
+                            "24px",
+                            {
+                                    "lineHeight": "32px",
+                                    "letterSpacing": "-0.01em",
+                                    "fontWeight": "700"
+                            }
+                    ],
+                    "body-lg": [
+                            "16px",
+                            {
+                                    "lineHeight": "24px",
+                                    "letterSpacing": "0",
+                                    "fontWeight": "400"
+                            }
+                    ],
+                    "headline-lg": [
+                            "32px",
+                            {
+                                    "lineHeight": "40px",
+                                    "letterSpacing": "-0.02em",
+                                    "fontWeight": "700"
+                            }
+                    ],
+                    "headline-md": [
+                            "20px",
+                            {
+                                    "lineHeight": "28px",
+                                    "letterSpacing": "-0.01em",
+                                    "fontWeight": "600"
+                            }
+                    ],
+                    "body-md": [
+                            "14px",
+                            {
+                                    "lineHeight": "20px",
+                                    "letterSpacing": "0",
+                                    "fontWeight": "400"
+                            }
+                    ],
+                    "label-md": [
+                            "12px",
+                            {
+                                    "lineHeight": "16px",
+                                    "letterSpacing": "0.05em",
+                                    "fontWeight": "500"
+                            }
+                    ]
+            }
+    },
+        },
+      }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background min-h-screen flex flex-col font-body-md antialiased selection:bg-primary-container selection:text-on-primary-container">
+<!-- Main Content Canvas -->
+<main class="flex-grow flex flex-col justify-center items-center px-margin-mobile md:px-margin-desktop py-xl">
+<!-- Hero Section -->
+<div class="max-w-3xl w-full text-center flex flex-col items-center gap-lg">
+<!-- Brand Element -->
+<div class="flex flex-col items-center gap-sm">
+<div class="w-20 h-20 bg-primary-container rounded-3xl flex items-center justify-center shadow-[0_8px_24px_rgba(0,131,120,0.15)] mb-md">
+<span class="material-symbols-outlined text-[48px] text-on-primary-container" style="font-variation-settings: 'FILL' 1;">
+                        account_balance_wallet
+                    </span>
+</div>
+<h1 class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-primary tracking-tight">
+                    Flousy
+                </h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant max-w-md mx-auto leading-relaxed mt-sm">
+                    Separate what money is FOR from where it IS.
+                </p>
+</div>
+<!-- Features Bento Grid -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-gutter w-full mt-xl">
+<!-- Feature 1 -->
+<div class="bg-surface-container-lowest p-lg rounded-[24px] border border-outline-variant/30 shadow-[0_4px_20px_rgba(0,0,0,0.04)] flex flex-col items-center text-center gap-md transition-transform hover:-translate-y-1 duration-300">
+<div class="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[24px]" style="font-variation-settings: 'FILL' 0;">
+                            mail
+                        </span>
+</div>
+<div>
+<h3 class="font-headline-md text-headline-md text-on-surface mb-xs">Budget Envelopes</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">Categorize into Needs, Wants, and Savings with precision.</p>
+</div>
+</div>
+<!-- Feature 2 -->
+<div class="bg-surface-container-lowest p-lg rounded-[24px] border border-outline-variant/30 shadow-[0_4px_20px_rgba(0,0,0,0.04)] flex flex-col items-center text-center gap-md transition-transform hover:-translate-y-1 duration-300">
+<div class="w-12 h-12 bg-secondary-container/50 rounded-2xl flex items-center justify-center text-on-secondary-container">
+<span class="material-symbols-outlined text-[24px]" style="font-variation-settings: 'FILL' 0;">
+                            account_balance
+                        </span>
+</div>
+<div>
+<h3 class="font-headline-md text-headline-md text-on-surface mb-xs">Money Places</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">Track exactly where your cash lives: Bank, Home, or Wallet.</p>
+</div>
+</div>
+<!-- Feature 3 -->
+<div class="bg-surface-container-lowest p-lg rounded-[24px] border border-outline-variant/30 shadow-[0_4px_20px_rgba(0,0,0,0.04)] flex flex-col items-center text-center gap-md transition-transform hover:-translate-y-1 duration-300">
+<div class="w-12 h-12 bg-tertiary-container/10 rounded-2xl flex items-center justify-center text-tertiary">
+<span class="material-symbols-outlined text-[24px]" style="font-variation-settings: 'FILL' 0;">
+                            flag
+                        </span>
+</div>
+<div>
+<h3 class="font-headline-md text-headline-md text-on-surface mb-xs">Savings Goals</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">Set clear milestones and watch your progress grow safely.</p>
+</div>
+</div>
+</div>
+<!-- CTA Actions -->
+<div class="flex flex-col sm:flex-row gap-md mt-xl w-full max-w-sm justify-center">
+<button class="bg-primary hover:bg-primary/90 text-on-primary font-label-md text-label-md py-4 px-8 rounded-full shadow-[0_4px_12px_rgba(0,104,95,0.2)] transition-all duration-200 active:scale-95 w-full sm:w-auto">
+                    Get Started
+                </button>
+<button class="bg-transparent border border-outline hover:bg-surface-variant/30 text-on-surface font-label-md text-label-md py-4 px-8 rounded-full transition-all duration-200 active:scale-95 w-full sm:w-auto">
+                    Log In
+                </button>
+</div>
+<div class="mt-xl text-center">
+<div class="bg-cover bg-center w-64 h-32 opacity-20 mx-auto rounded-3xl blur-sm filter grayscale-[50%]" data-alt="A subtle, minimalist abstract background representing financial clarity. Soft, blurred teal and off-white gradients blending seamlessly. High-key lighting, bright and airy. The composition feels modern, clean, and professional, evoking a sense of calm control over personal data." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAioHif8fkAXzOGlHC37eld3kJZbNUnpv8wXH46IgIzWofyrRzjpmc6EV-WLWkpyPlgtSKlCR1cInhbC93dDMfi8UY5BOE7uECBWXen2oqLGuJSiwGh9IERSY838RA_VXzUKlN3jQ-mmtsv77VmIJJbHEcdskVX3_uZ89EkbmzUqpacbBUOe063cRx6vzGXlnGja0jo81HfCGj3gfTF7ZMpPzDgodY960P-yMKZwQUQmR9jle1gPILtgBk_Cj43dN5iJJDfZJP9_ewf')"></div>
+</div>
+</div>
+</main>
+</body></html>

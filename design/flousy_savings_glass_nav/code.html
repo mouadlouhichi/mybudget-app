@@ -1,0 +1,274 @@
+<!DOCTYPE html><html class="light" lang="en" style=""><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Flousy - Savings</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "outline": "#6d7a77",
+                        "on-secondary": "#ffffff",
+                        "secondary-fixed": "#dce2f7",
+                        "secondary-container": "#d9dff5",
+                        "outline-variant": "#bcc9c6",
+                        "on-primary": "#ffffff",
+                        "tertiary-fixed-dim": "#ffb59a",
+                        "inverse-surface": "#2c3130",
+                        "on-tertiary-fixed": "#370e00",
+                        "surface-dim": "#d6dbd9",
+                        "on-error": "#ffffff",
+                        "tertiary": "#924628",
+                        "on-background": "#171d1c",
+                        "secondary-fixed-dim": "#c0c6db",
+                        "surface-tint": "#006a61",
+                        "on-tertiary": "#ffffff",
+                        "tertiary-container": "#b05e3d",
+                        "secondary": "#575e70",
+                        "surface": "#f5faf8",
+                        "primary": "#00685f",
+                        "on-surface-variant": "#3d4947",
+                        "surface-container-high": "#e4e9e7",
+                        "on-tertiary-fixed-variant": "#773215",
+                        "on-tertiary-container": "#fffbff",
+                        "surface-variant": "#dee4e1",
+                        "on-surface": "#171d1c",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-container-low": "#f0f5f2",
+                        "inverse-on-surface": "#edf2f0",
+                        "on-secondary-fixed-variant": "#404758",
+                        "surface-container": "#eaefed",
+                        "on-primary-container": "#f4fffc",
+                        "error": "#ba1a1a",
+                        "background": "#f5faf8",
+                        "on-primary-fixed-variant": "#005049",
+                        "on-primary-fixed": "#00201d",
+                        "on-error-container": "#93000a",
+                        "inverse-primary": "#6bd8cb",
+                        "primary-fixed-dim": "#6bd8cb",
+                        "surface-container-highest": "#dee4e1",
+                        "on-secondary-fixed": "#141b2b",
+                        "tertiary-fixed": "#ffdbce",
+                        "primary-fixed": "#89f5e7",
+                        "error-container": "#ffdad6",
+                        "primary-container": "#008378",
+                        "on-secondary-container": "#5c6274",
+                        "surface-bright": "#f5faf8"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "sm": "8px",
+                        "xs": "4px",
+                        "xl": "32px",
+                        "margin-mobile": "16px",
+                        "md": "16px",
+                        "gutter": "16px",
+                        "base": "4px",
+                        "margin-desktop": "48px",
+                        "lg": "24px"
+                    },
+                    "fontFamily": {
+                        "headline-lg-mobile": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "label-md": ["Inter"],
+                        "headline-lg": ["Inter"],
+                        "label-sm": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "body-md": ["Inter"]
+                    },
+                    "fontSize": {
+                        "headline-lg-mobile": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "700" }],
+                        "body-lg": ["16px", { "lineHeight": "24px", "letterSpacing": "0", "fontWeight": "400" }],
+                        "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "500" }],
+                        "headline-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "label-sm": ["11px", { "lineHeight": "14px", "letterSpacing": "0.03em", "fontWeight": "600" }],
+                        "headline-md": ["20px", { "lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "body-md": ["14px", { "lineHeight": "20px", "letterSpacing": "0", "fontWeight": "400" }]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            background-color: theme('colors.background');
+            color: theme('colors.on-background');
+        }
+        .soft-shadow {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.04), 0 2px 4px -1px rgba(0, 0, 0, 0.02);
+        }
+        .level-2-shadow {
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.12), 0 4px 6px -2px rgba(0, 0, 0, 0.04);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head>
+<body class="min-h-screen pb-32 md:pb-0">
+<!-- TopAppBar -->
+<header class="flex justify-between items-center w-full px-margin-mobile h-16 bg-surface dark:bg-inverse-surface sticky top-0 z-40 transition-transform duration-200">
+<div class="flex items-center gap-4">
+<button class="text-on-surface-variant dark:text-outline-variant hover:opacity-80 transition-opacity">
+<span class="material-symbols-outlined" style="font-variation-settings: &quot;FILL&quot; 0;">arrow_back</span>
+</button>
+<h1 class="font-headline-md text-headline-md font-bold text-primary dark:text-primary-fixed-dim">Flousy</h1>
+</div>
+<!-- Desktop Nav Cluster -->
+<nav class="hidden md:flex items-center gap-8">
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-outline-variant hover:opacity-80 transition-opacity font-label-md text-label-md group" href="#">
+<span class="material-symbols-outlined group-hover:opacity-80" style="font-variation-settings: &quot;FILL&quot; 0;">dashboard</span>
+<span class="mt-1">Overview</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-outline-variant hover:opacity-80 transition-opacity font-label-md text-label-md group" href="#">
+<span class="material-symbols-outlined group-hover:opacity-80" style="font-variation-settings: &quot;FILL&quot; 0;">event_repeat</span>
+<span class="mt-1">Fixed</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-outline-variant hover:opacity-80 transition-opacity font-label-md text-label-md group" href="#">
+<span class="material-symbols-outlined group-hover:opacity-80" style="font-variation-settings: &quot;FILL&quot; 0;">shopping_cart</span>
+<span class="mt-1">Variable</span>
+</a>
+<a class="flex flex-col items-center justify-center text-primary dark:text-primary-fixed-dim font-bold font-label-md text-label-md scale-95 transition-transform duration-200" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: &quot;FILL&quot; 1; stroke-width: 2px;">savings</span>
+<span class="mt-1">Savings</span>
+</a>
+</nav>
+<button class="text-on-surface-variant dark:text-outline-variant hover:opacity-80 transition-opacity">
+<span class="material-symbols-outlined" style="font-variation-settings: &quot;FILL&quot; 0;">account_circle</span>
+</button>
+</header>
+<main class="w-full max-w-7xl mx-auto px-margin-mobile md:px-margin-desktop py-lg grid grid-cols-4 md:grid-cols-12 gap-gutter">
+<!-- Total Savings Summary -->
+<section class="col-span-4 md:col-span-12 mb-lg">
+<div class="bg-surface rounded-[24px] border border-outline-variant/30 soft-shadow p-6 flex flex-col md:flex-row justify-between items-center relative overflow-hidden">
+<div class="z-10 w-full md:w-1/2">
+<h2 class="font-body-md text-body-md text-on-surface-variant mb-2">Total Savings</h2>
+<p class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-on-surface mb-1">$45,250.00</p>
+<div class="flex items-center gap-2 mt-xs">
+<span class="material-symbols-outlined text-primary text-[16px]" style="font-variation-settings: &quot;FILL&quot; 1;">trending_up</span>
+<span class="font-label-sm text-label-sm text-primary">+2.4% from last month</span>
+</div>
+</div>
+<!-- Abstract visual representation -->
+<div class="absolute right-0 top-0 bottom-0 w-1/2 opacity-10 pointer-events-none hidden md:block">
+<svg class="w-full h-full fill-primary" viewBox="0 0 100 100">
+<path d="M0,100 C20,80 40,90 60,60 C80,30 90,40 100,0 L100,100 Z"></path>
+</svg>
+</div>
+</div>
+</section>
+<!-- Savings Goals Grid -->
+<section class="col-span-4 md:col-span-12 grid grid-cols-1 md:grid-cols-3 gap-gutter">
+<!-- Goal Card 1 -->
+<article class="bg-surface rounded-[24px] border border-outline-variant/30 soft-shadow p-[20px] md:p-[24px] flex flex-col justify-between">
+<div>
+<div class="flex justify-between items-start mb-sm">
+<div class="flex items-center gap-2">
+<div class="w-8 h-8 rounded-full bg-secondary-container flex items-center justify-center text-on-secondary-container">
+<span class="material-symbols-outlined text-[18px]" style="font-variation-settings: &quot;FILL&quot; 1;">directions_car</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-on-surface">New Car</h3>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant bg-surface-container px-2 py-1 rounded-full">Target: $25,000</span>
+</div>
+<p class="font-body-lg text-body-lg text-on-surface mb-lg">$15,500.00</p>
+</div>
+<div>
+<div class="w-full bg-surface-variant rounded-full h-[12px] mb-xs overflow-hidden">
+<div class="bg-primary h-full rounded-full" style="width: 62%"></div>
+</div>
+<div class="flex justify-between text-on-surface-variant font-label-sm text-label-sm">
+<span class="">62%</span>
+<span class="">$9,500 left</span>
+</div>
+</div>
+</article>
+<!-- Goal Card 2 -->
+<article class="bg-surface rounded-[24px] border border-outline-variant/30 soft-shadow p-[20px] md:p-[24px] flex flex-col justify-between">
+<div>
+<div class="flex justify-between items-start mb-sm">
+<div class="flex items-center gap-2">
+<div class="w-8 h-8 rounded-full bg-tertiary-container/20 flex items-center justify-center text-tertiary">
+<span class="material-symbols-outlined text-[18px]" style="font-variation-settings: &quot;FILL&quot; 1;">health_and_safety</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-on-surface">Emergency Fund</h3>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant bg-surface-container px-2 py-1 rounded-full">Target: $10,000</span>
+</div>
+<p class="font-body-lg text-body-lg text-on-surface mb-lg">$10,000.00</p>
+</div>
+<div>
+<div class="w-full bg-surface-variant rounded-full h-[12px] mb-xs overflow-hidden">
+<div class="bg-surface-tint h-full rounded-full" style="width: 100%"></div>
+</div>
+<div class="flex justify-between text-on-surface-variant font-label-sm text-label-sm">
+<span class="text-surface-tint font-bold">100%</span>
+<span class="">Goal Reached</span>
+</div>
+</div>
+</article>
+<!-- Goal Card 3 -->
+<article class="bg-surface rounded-[24px] border border-outline-variant/30 soft-shadow p-[20px] md:p-[24px] flex flex-col justify-between">
+<div>
+<div class="flex justify-between items-start mb-sm">
+<div class="flex items-center gap-2">
+<div class="w-8 h-8 rounded-full bg-inverse-primary/30 flex items-center justify-center text-primary-fixed-dim">
+<span class="material-symbols-outlined text-[18px]" style="font-variation-settings: &quot;FILL&quot; 1;">flight_takeoff</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-on-surface">Japan Trip</h3>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant bg-surface-container px-2 py-1 rounded-full">Target: $5,000</span>
+</div>
+<p class="font-body-lg text-body-lg text-on-surface mb-lg">$1,200.00</p>
+</div>
+<div>
+<div class="w-full bg-surface-variant rounded-full h-[12px] mb-xs overflow-hidden">
+<div class="bg-primary-container h-full rounded-full" style="width: 24%"></div>
+</div>
+<div class="flex justify-between text-on-surface-variant font-label-sm text-label-sm">
+<span class="">24%</span>
+<span class="">$3,800 left</span>
+</div>
+</div>
+</article>
+<!-- New Goal Card -->
+<article class="bg-surface-container-low rounded-[24px] border-2 border-dashed border-outline-variant/50 hover:border-primary/50 transition-colors p-[20px] md:p-[24px] flex flex-col justify-center items-center cursor-pointer group min-h-[200px]">
+<div class="w-12 h-12 rounded-full bg-surface-container-high group-hover:bg-primary flex items-center justify-center text-on-surface-variant group-hover:text-on-primary transition-colors mb-sm">
+<span class="material-symbols-outlined text-[24px]" style="font-variation-settings: &quot;FILL&quot; 0;">add</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-on-surface-variant group-hover:text-primary transition-colors">New Goal</h3>
+</article>
+</section>
+</main>
+<!-- BottomNavBar (Mobile Only) -->
+<nav class="fixed bottom-6 left-6 right-6 z-50 flex justify-around items-center px-4 py-2 bg-surface/80 dark:bg-inverse-surface/80 backdrop-blur-md md:hidden rounded-full border border-outline-variant/30 shadow-lg">
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-outline-variant hover:bg-surface-variant/20 dark:hover:bg-surface-variant/10 p-2 rounded-full transition-colors font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined mb-1" style="font-variation-settings: &quot;FILL&quot; 0;">dashboard</span>
+
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-outline-variant hover:bg-surface-variant/20 dark:hover:bg-surface-variant/10 p-2 rounded-full transition-colors font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined mb-1" style="font-variation-settings: &quot;FILL&quot; 0;">event_repeat</span>
+
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-outline-variant hover:bg-surface-variant/20 dark:hover:bg-surface-variant/10 p-2 rounded-full transition-colors font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined mb-1" style="font-variation-settings: &quot;FILL&quot; 0;">shopping_cart</span>
+
+</a>
+<a class="flex flex-col items-center justify-center text-primary dark:text-primary-fixed-dim bg-primary/10 dark:bg-primary-fixed-dim/10 font-bold scale-95 transition-transform duration-150 p-2 px-4 rounded-full font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined mb-1" style="font-variation-settings: &quot;FILL&quot; 1; stroke-width: 2px;">savings</span>
+
+</a>
+</nav>
+</body></html>
