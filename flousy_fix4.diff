@@ -1,0 +1,463 @@
+diff --git a/firestore.rules b/firestore.rules
+index 0dc7a3f..d66a985 100644
+--- a/firestore.rules
++++ b/firestore.rules
+@@ -14,6 +14,10 @@ service cloud.firestore {
+       match /months/{monthId} {
+         allow read, write: if request.auth != null && request.auth.uid == uid;
+       }
++
++      match /data/{docId} {
++        allow read, write: if request.auth != null && request.auth.uid == uid;
++      }
+     }
+ 
+     // Deny everything else by default.
+diff --git a/src/app/dashboard/page.tsx b/src/app/dashboard/page.tsx
+index bd361cf..60c02b3 100644
+--- a/src/app/dashboard/page.tsx
++++ b/src/app/dashboard/page.tsx
+@@ -1,11 +1,11 @@
+ 'use client'
+-import { useState, useEffect, useCallback } from 'react'
++import { useState, useEffect, useCallback, useRef } from 'react'
+ import { createPortal } from 'react-dom'
+ import { useRouter } from 'next/navigation'
+ import { useAuth } from '@/lib/auth-context'
+-import { saveMonth, subscribeMonth, getMonth } from '@/lib/db'
++import { saveMonth, subscribeMonth, getMonth, getSavings, saveSavings, subscribeSavings } from '@/lib/db'
+ import {
+-  emptyMonth, rolloverMonth, MonthBudget, VariableExpense, FixedExpense, SavingGoal,
++  emptyMonth, rolloverMonth, MonthBudget, VariableExpense, FixedExpense, SavingGoal, SavingsData, emptySavings,
+   VARIABLE_TYPES, FIXED_TYPES, CAT_COLOR, MONEY_PLACES, MONEY_PLACE_LABEL, MoneyPlace,
+   SAVING_SOURCES, SOURCE_TO_PLACE, withMoneyPlaceDelta, moneyPlaceAmount,
+   displayVariableCats, displayFixedCats, categoryColor, nextPaletteColor,
+@@ -19,6 +19,10 @@ import {
+   Sliders, ArrowCircleUp,
+ } from '@phosphor-icons/react/dist/ssr'
+ import type { Icon } from '@phosphor-icons/react'
++import {
++  Home as LucideHome, Wallet as LucideWallet, Receipt as LucideReceipt, PiggyBank as LucidePiggyBank,
++  type LucideIcon,
++} from 'lucide-react'
+ 
+ /* ── helpers ── */
+ const fmt   = (n: number) => n.toLocaleString('fr-MA', { maximumFractionDigits: 0 })
+@@ -27,6 +31,7 @@ const uid   = () => Math.random().toString(36).slice(2, 10)
+ const today = () => new Date().toISOString().slice(0, 10)
+ const catIcon = (t: string): Icon => CAT_ICON[t] ?? CAT_ICON_FALLBACK
+ const MONEY_PLACE_ICON: Record<MoneyPlace, Icon> = { bank: Bank, home: House, wallet: Wallet }
++const MONEY_PLACE_TINT: Record<MoneyPlace, string> = { bank: '#7B9E8E', home: '#D6A75C', wallet: '#C9695A' }
+ 
+ function prevMonth(id: string) {
+   const [y, m] = id.split('-')
+@@ -446,12 +451,18 @@ function ManageCategoriesModal({ month, onClose, onSave }: { month: MonthBudget;
+ }
+ 
+ /* ══════════════════════ OVERVIEW ══════════════════════ */
+-function Overview({ month }: { month: MonthBudget }) {
++function Overview({ month, savings }: { month: MonthBudget; savings: SavingsData }) {
+   const totalFixed = month.fixedExpenses.reduce((s,e)=>s+e.amount,0)
+   const totalVar   = month.variableExpenses.reduce((s,e)=>s+e.amount,0)
+-  const totalSaved = month.savingGoals.filter(g=>g.active).reduce((s,g)=>s+g.current,0)
++  // Saving goals are global - their `current` balance is a lifetime total,
++  // not something scoped to the month being viewed. It's shown here for
++  // context but isn't subtracted from this month's remaining budget: money
++  // moved into a goal already left its money place (see topUpSaving), so
++  // subtracting it again here would double-count it and make "remaining"
++  // shrink every month even with no new spending.
++  const totalSaved = savings.goals.filter(g=>g.active).reduce((s,g)=>s+g.current,0)
+   const totalSpent = totalFixed + totalVar
+-  const remaining  = month.totalBudget - totalSpent - totalSaved
++  const remaining  = month.totalBudget - totalSpent
+   const spentPct   = pct(totalSpent, month.totalBudget)
+ 
+   const statusColor = spentPct>=95?'var(--bad)':spentPct>=75?'var(--warn)':'var(--good)'
+@@ -478,9 +489,14 @@ function Overview({ month }: { month: MonthBudget }) {
+ 
+   return (
+     <div className="space-y-4 slide-up">
+-      {/* Hero card - solid off-black, gold accent border, no gradient wash */}
+-      <div className="relative" style={{borderRadius:'var(--r-card)',padding:24,background:'var(--surface)',border:'1px solid var(--border-2)',boxShadow:'var(--shadow-card)'}}>
+-        <div className="flex items-start justify-between mb-6">
++      {/* Hero card - solid off-black card, subtle accent glow + watermark for depth without a full gradient wash */}
++      <div className="relative" style={{borderRadius:'var(--r-card)',padding:24,background:'var(--surface)',border:'1px solid var(--border-2)',boxShadow:'var(--shadow-card)',overflow:'hidden'}}>
++        <div aria-hidden style={{position:'absolute',top:-60,right:-60,width:180,height:180,borderRadius:'50%',
++          background:'radial-gradient(circle, color-mix(in srgb, var(--accent) 22%, transparent) 0%, transparent 70%)',pointerEvents:'none'}}/>
++        <Wallet aria-hidden size={128} weight="fill" color="var(--t1)"
++          style={{position:'absolute',top:-18,right:-18,opacity:0.035,pointerEvents:'none'}}/>
++
++        <div className="flex items-start justify-between mb-6 relative">
+           <div>
+             <p style={{fontSize:11,fontWeight:700,color:'var(--t3)',textTransform:'uppercase',letterSpacing:'0.1em'}}>Total Budget</p>
+             <p className="f-display num" style={{fontSize:38,fontWeight:700,color:'var(--t1)',lineHeight:1.1,marginTop:4}}>
+@@ -495,7 +511,7 @@ function Overview({ month }: { month: MonthBudget }) {
+           </div>
+         </div>
+ 
+-        <div style={{marginBottom:20}}>
++        <div className="relative" style={{marginBottom:20}}>
+           <div style={{display:'flex',justifyContent:'space-between',marginBottom:8}}>
+             <span style={{fontSize:12,color:'var(--t3)'}}>Spent {spentPct}%</span>
+             <span style={{fontSize:12,fontWeight:700,color:remaining<0?'var(--bad)':'var(--good)'}}>
+@@ -503,18 +519,32 @@ function Overview({ month }: { month: MonthBudget }) {
+             </span>
+           </div>
+           <PBar value={spentPct} color="var(--accent)" h={8}/>
++          <div className="flex items-center gap-4" style={{marginTop:10}}>
++            {[{l:'Fixed',v:totalFixed,c:'var(--accent-dim)'},{l:'Variable',v:totalVar,c:'var(--accent)'}].map(i=>(
++              <div key={i.l} className="flex items-center gap-1.5">
++                <div style={{width:6,height:6,borderRadius:'50%',background:i.c}}/>
++                <span style={{fontSize:11,color:'var(--t3)'}}>{i.l} <b className="num" style={{color:'var(--t2)',fontWeight:700}}>{fmt(i.v)}</b></span>
++              </div>
++            ))}
++          </div>
+         </div>
+ 
+-        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:10}}>
+-          {MONEY_PLACES.map(p=>(
+-            <div key={p} className="glass-2" style={{padding:'12px 10px'}}>
+-              <div className="flex items-center gap-1.5" style={{marginBottom:6}}>
+-                {(() => { const Ico = MONEY_PLACE_ICON[p]; return <Ico size={13} weight="bold" color="var(--t3)"/> })()}
+-                <p style={{fontSize:11,color:'var(--t3)',fontWeight:600}}>{MONEY_PLACE_LABEL[p]}</p>
++        <div className="relative" style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:10}}>
++          {MONEY_PLACES.map(p=>{
++            const Ico = MONEY_PLACE_ICON[p]
++            const c = MONEY_PLACE_TINT[p]
++            return (
++              <div key={p} className="glass-2 md:hover:-translate-y-0.5" style={{padding:'12px 10px',transition:'transform 0.15s'}}>
++                <div className="flex items-center gap-1.5" style={{marginBottom:8}}>
++                  <div style={{width:20,height:20,borderRadius:7,background:c+'1f',display:'flex',alignItems:'center',justifyContent:'center'}}>
++                    <Ico size={11} weight="bold" color={c}/>
++                  </div>
++                  <p style={{fontSize:11,color:'var(--t3)',fontWeight:600}}>{MONEY_PLACE_LABEL[p]}</p>
++                </div>
++                <p className="f-display num" style={{fontSize:17,fontWeight:700,color:'var(--t1)'}}>{fmt(moneyPlaceAmount(month,p))}</p>
+               </div>
+-              <p className="f-display num" style={{fontSize:17,fontWeight:700,color:'var(--t1)'}}>{fmt(moneyPlaceAmount(month,p))}</p>
+-            </div>
+-          ))}
++            )
++          })}
+         </div>
+       </div>
+ 
+@@ -527,7 +557,7 @@ function Overview({ month }: { month: MonthBudget }) {
+           {label:'Variable',val:totalVar,Ico:ChartBar,color:'var(--accent)'},
+           {label:'Saved',val:totalSaved,Ico:PiggyBank,color:'var(--good)'},
+         ].map(c=>(
+-          <div key={c.label} className="glass" style={{padding:'14px 12px'}}>
++          <div key={c.label} className="glass md:hover:-translate-y-0.5" style={{padding:'14px 12px',border:'1px solid var(--border)',transition:'transform 0.15s'}}>
+             <div style={{width:32,height:32,borderRadius:10,background:c.color+'22',display:'flex',alignItems:'center',justifyContent:'center',marginBottom:8}}>
+               <c.Ico size={15} weight="bold" color={c.color}/>
+             </div>
+@@ -784,13 +814,13 @@ function FixedTab({month,onAdd,onDelete}:{month:MonthBudget;onAdd:(e:Omit<FixedE
+ }
+ 
+ /* ══════════════════════ SAVINGS ══════════════════════ */
+-function SavingsTab({month,onAdd,onDelete,onToggle,onTopUp}:{month:MonthBudget;onAdd:(g:Omit<SavingGoal,'id'>)=>void;onDelete:(id:string)=>void;onToggle:(id:string)=>void;onTopUp:(id:string,amount:number,place:MoneyPlace)=>void}){
++function SavingsTab({month,savings,onAdd,onDelete,onToggle,onTopUp}:{month:MonthBudget;savings:SavingsData;onAdd:(g:Omit<SavingGoal,'id'>)=>void;onDelete:(id:string)=>void;onToggle:(id:string)=>void;onTopUp:(id:string,amount:number,place:MoneyPlace)=>void}){
+   const [showAdd,setShowAdd]=useState(false)
+   const [fundingGoal,setFundingGoal]=useState<SavingGoal|null>(null)
+-  const active=month.savingGoals.filter(g=>g.active)
+-  const inactive=month.savingGoals.filter(g=>!g.active)
++  const active=savings.goals.filter(g=>g.active)
++  const inactive=savings.goals.filter(g=>!g.active)
+   const totalSaved=active.reduce((s,g)=>s+g.current,0)
+-  const totalTarget=month.savingGoals.reduce((s,g)=>s+g.target,0)
++  const totalTarget=savings.goals.reduce((s,g)=>s+g.target,0)
+   return(
+     <div className="space-y-4 slide-up">
+       <div className="glass" style={{padding:20,display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+@@ -864,7 +894,7 @@ function SavingsTab({month,onAdd,onDelete,onToggle,onTopUp}:{month:MonthBudget;o
+         </div>
+       )}
+ 
+-      {month.savingGoals.length===0&&(
++      {savings.goals.length===0&&(
+         <div className="glass" style={{padding:40,textAlign:'center',color:'var(--t3)'}}>
+           <PiggyBank size={28} style={{margin:'0 auto 8px',opacity:.3}}/><p style={{fontSize:13}}>No saving goals yet</p>
+         </div>
+@@ -882,7 +912,10 @@ export default function Dashboard() {
+   const { user, profile, loading: authLoading, configError, signOut } = useAuth()
+   const router = useRouter()
+   const [month, setMonth] = useState<MonthBudget | null>(null)
++  const monthRef = useRef<MonthBudget | null>(null)
++  useEffect(() => { monthRef.current = month }, [month])
+   const [monthId, setMonthId] = useState(currentMonthId())
++  const [savings, setSavings] = useState<SavingsData | null>(null)
+   const [tab, setTab] = useState<Tab>('overview')
+   const [showSettings, setShowSettings] = useState(false)
+   const [showCategories, setShowCategories] = useState(false)
+@@ -923,6 +956,32 @@ export default function Dashboard() {
+     return () => unsub()
+   }, [user, profile, monthId])
+ 
++  // Saving goals are global - subscribed once per session, independent of
++  // which month is being viewed. The very first time a returning account
++  // opens this after the update, there's no global savings doc yet; we
++  // migrate it from whatever goals happened to be on the most recently
++  // viewed month (the old, per-month storage) so nothing looks lost.
++  useEffect(() => {
++    if (!user) return
++    if (profile && !profile.onboardingComplete) return
++    let migrated = false
++    const unsub = subscribeSavings(
++      user.uid,
++      async (s) => {
++        if (s.goals.length === 0 && !migrated && monthRef.current?.savingGoals?.length) {
++          migrated = true
++          const seeded: SavingsData = { goals: monthRef.current.savingGoals }
++          try { await saveSavings(user.uid, seeded) } catch (e) { console.error(e) }
++          setSavings(seeded)
++        } else {
++          setSavings(s)
++        }
++      },
++      () => setError("Couldn't load your saving goals - check your connection or Firestore setup.")
++    )
++    return () => unsub()
++  }, [user, profile])
++
+   const persist = useCallback(async (updated: MonthBudget) => {
+     if (!user) return
+     setMonth(updated)
+@@ -938,6 +997,21 @@ export default function Dashboard() {
+     }
+   }, [user])
+ 
++  const persistSavings = useCallback(async (updated: SavingsData) => {
++    if (!user) return
++    setSavings(updated)
++    setSaving(true)
++    try {
++      await saveSavings(user.uid, updated)
++      setError('')
++    } catch (e) {
++      console.error(e)
++      setError("Couldn't save your changes. Check your connection and try again.")
++    } finally {
++      setSaving(false)
++    }
++  }, [user])
++
+   function updateMonth(patch: Partial<MonthBudget>) {
+     if (!month) return
+     persist({ ...month, ...patch })
+@@ -949,19 +1023,21 @@ export default function Dashboard() {
+   const delVariable  = (id: string) => { if (month && confirmDelete('this expense')) persist({...month, variableExpenses:month.variableExpenses.filter(e=>e.id!==id)}) }
+   const addFixed     = (e: Omit<FixedExpense,'id'>)    => month && persist({...month, fixedExpenses:[...month.fixedExpenses,{...e,id:uid2()}]})
+   const delFixed     = (id: string) => { if (month && confirmDelete('this fixed charge')) persist({...month, fixedExpenses:month.fixedExpenses.filter(e=>e.id!==id)}) }
+-  // Funding a saving goal moves real money out of whichever money place it came from.
++  // Saving goals are global and never reset month to month - funding one
++  // just moves real money out of whichever money place it came from, this month.
+   const addSaving = (g: Omit<SavingGoal,'id'>) => {
+-    if (!month) return
+-    const patch = g.current > 0 ? withMoneyPlaceDelta(month, SOURCE_TO_PLACE[g.source], -g.current) : {}
+-    persist({ ...month, ...patch, savingGoals: [...month.savingGoals, { ...g, id: uid2() }] })
++    if (!month || !savings) return
++    if (g.current > 0) persist({ ...month, ...withMoneyPlaceDelta(month, SOURCE_TO_PLACE[g.source], -g.current) })
++    persistSavings({ goals: [...savings.goals, { ...g, id: uid2() }] })
+   }
+-  const delSaving    = (id: string) => { if (month && confirmDelete('this saving goal')) persist({...month, savingGoals:month.savingGoals.filter(g=>g.id!==id)}) }
+-  const toggleSaving = (id: string) => month && persist({...month, savingGoals:month.savingGoals.map(g=>g.id===id?{...g,active:!g.active}:g)})
+-  // Topping up an existing goal also moves money out of the chosen place.
++  const delSaving    = (id: string) => { if (savings && confirmDelete('this saving goal')) persistSavings({ goals: savings.goals.filter(g=>g.id!==id) }) }
++  const toggleSaving = (id: string) => savings && persistSavings({ goals: savings.goals.map(g=>g.id===id?{...g,active:!g.active}:g) })
++  // Topping up an existing goal also moves money out of the chosen place,
++  // this month, while the goal's running total keeps growing across months.
+   const topUpSaving = (id: string, amount: number, place: MoneyPlace) => {
+-    if (!month) return
+-    const patch = withMoneyPlaceDelta(month, place, -amount)
+-    persist({ ...month, ...patch, savingGoals: month.savingGoals.map(g => g.id===id ? {...g, current: g.current+amount, active: true} : g) })
++    if (!month || !savings) return
++    persist({ ...month, ...withMoneyPlaceDelta(month, place, -amount) })
++    persistSavings({ goals: savings.goals.map(g => g.id===id ? {...g, current: g.current+amount, active: true} : g) })
+   }
+ 
+   async function handleSignOut() {
+@@ -980,7 +1056,7 @@ export default function Dashboard() {
+     </div>
+   )
+ 
+-  if (authLoading || !month) return (
++  if (authLoading || !month || !savings) return (
+     <div className="min-h-screen flex items-center justify-center" style={{background:'var(--bg)'}}>
+       <div style={{textAlign:'center'}}>
+         <div className="w-10 h-10 rounded-full border-2 border-t-transparent animate-spin mx-auto mb-3"
+@@ -996,6 +1072,13 @@ export default function Dashboard() {
+     {id:'fixed',label:'Fixed',Icon:Receipt},
+     {id:'savings',label:'Savings',Icon:PiggyBank},
+   ]
++  // Mobile bottom nav uses lucide-react, icon-only, Instagram-style.
++  const mobileTabs: {id:Tab;Icon:LucideIcon}[] = [
++    {id:'overview',Icon:LucideHome},
++    {id:'variable',Icon:LucideWallet},
++    {id:'fixed',Icon:LucideReceipt},
++    {id:'savings',Icon:LucidePiggyBank},
++  ]
+ 
+   return (
+     <div className="min-h-screen md:flex" style={{background:'var(--bg)'}}>
+@@ -1066,28 +1149,23 @@ export default function Dashboard() {
+         <div className="flex-1 overflow-y-auto px-4 pt-4 pb-28 md:px-8 md:pt-6 md:pb-10">
+           <div className="md:max-w-5xl md:mx-auto">
+             {error && <div className="banner banner-error fade-in" style={{marginBottom:16}}>{error}</div>}
+-            {tab==='overview' && <Overview month={month}/>}
++            {tab==='overview' && <Overview month={month} savings={savings}/>}
+             {tab==='variable' && <VariableTab month={month} onAdd={addVariable} onDelete={delVariable}/>}
+             {tab==='fixed'    && <FixedTab month={month} onAdd={addFixed} onDelete={delFixed}/>}
+-            {tab==='savings'  && <SavingsTab month={month} onAdd={addSaving} onDelete={delSaving} onToggle={toggleSaving} onTopUp={topUpSaving}/>}
++            {tab==='savings'  && <SavingsTab month={month} savings={savings} onAdd={addSaving} onDelete={delSaving} onToggle={toggleSaving} onTopUp={topUpSaving}/>}
+           </div>
+         </div>
+ 
+-        {/* Bottom nav - mobile only; desktop uses the sidebar instead */}
++        {/* Bottom nav - mobile only, Instagram-style icon-only; desktop uses the sidebar instead */}
+         <nav className="safe-bottom fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md z-40 md:hidden"
+           style={{background:'rgba(255,255,255,0.92)',backdropFilter:'blur(24px)',borderTop:'1px solid var(--border)'}}>
+-          <div style={{display:'flex',padding:'4px 8px'}}>
+-            {tabs.map(t=>{
++          <div style={{display:'flex',padding:'2px 12px'}}>
++            {mobileTabs.map(t=>{
+               const active=tab===t.id
+               return(
+-                <button key={t.id} onClick={()=>setTab(t.id)} className="tap"
+-                  style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',
+-                    padding:'8px 4px',borderRadius:14,gap:4,
+-                    color:active?'var(--t1)':'var(--t3)',
+-                    background:active?'var(--accent-tint)':'transparent',
+-                    transition:'all 0.15s'}}>
+-                  <t.Icon size={19} weight={active?'fill':'regular'}/>
+-                  <span style={{fontSize:10,fontWeight:700,letterSpacing:'0.02em'}}>{t.label}</span>
++                <button key={t.id} onClick={()=>setTab(t.id)} className="tap" aria-label={t.id}
++                  style={{flex:1,display:'flex',alignItems:'center',justifyContent:'center',padding:'12px 0',background:'transparent',border:'none'}}>
++                  <t.Icon size={26} strokeWidth={active?2.25:1.6} color={active?'var(--t1)':'var(--t3)'} fill={active?'var(--t1)':'none'} fillOpacity={active?0.12:0}/>
+                 </button>
+               )
+             })}
+diff --git a/src/lib/db.ts b/src/lib/db.ts
+index 869ccd7..34f8252 100644
+--- a/src/lib/db.ts
++++ b/src/lib/db.ts
+@@ -7,8 +7,8 @@ import {
+   Timestamp, orderBy, limit, getDocs,
+ } from 'firebase/firestore'
+ import { db } from './firebase'
+-import type { MonthBudget, VariableExpense, FixedExpense, SavingGoal } from './store'
+-import { normalizeMonth } from './store'
++import type { MonthBudget, VariableExpense, FixedExpense, SavingGoal, SavingsData } from './store'
++import { normalizeMonth, emptySavings } from './store'
+ 
+ // ── User profile ──────────────────────────────────────────────────────────────
+ export interface UserProfile {
+@@ -76,3 +76,37 @@ export async function listMonths(uid: string): Promise<MonthBudget[]> {
+   const snap = await getDocs(q)
+   return snap.docs.map(d => normalizeMonth(d.data() as MonthBudget))
+ }
++
++// ── Saving goals ──────────────────────────────────────────────────────────────
++// Saving goals live at the user level, not inside a month document - the
++// money you set aside in April is still saved in May. Months only ever
++// affect a goal's balance by moving money into/out of it; they never own
++// the goal itself, so nothing resets or gets duplicated when a new month
++// rolls over.
++export function savingsDocRef(uid: string) {
++  return doc(db, 'users', uid, 'data', 'savings')
++}
++
++export async function getSavings(uid: string): Promise<SavingsData | null> {
++  const snap = await getDoc(savingsDocRef(uid))
++  return snap.exists() ? (snap.data() as SavingsData) : null
++}
++
++export async function saveSavings(uid: string, data: SavingsData) {
++  await setDoc(savingsDocRef(uid), { ...data, updatedAt: serverTimestamp() })
++}
++
++export function subscribeSavings(
++  uid: string,
++  cb: (s: SavingsData) => void,
++  onError?: (err: Error) => void
++) {
++  return onSnapshot(
++    savingsDocRef(uid),
++    snap => cb(snap.exists() ? (snap.data() as SavingsData) : emptySavings()),
++    err => {
++      console.error('subscribeSavings error', err)
++      onError?.(err as unknown as Error)
++    }
++  )
++}
+diff --git a/src/lib/store.ts b/src/lib/store.ts
+index 54ac3aa..c756cbc 100644
+--- a/src/lib/store.ts
++++ b/src/lib/store.ts
+@@ -29,12 +29,20 @@ export interface SavingGoal {
+   id: string; name: string; target: number; current: number
+   source: SavingSource; active: boolean
+ }
++
++// Saving goals are global (per user, not per month) - see db.ts savingsDocRef.
++// Money you set aside stays saved when the calendar month rolls over.
++export interface SavingsData { goals: SavingGoal[] }
++export function emptySavings(): SavingsData { return { goals: [] } }
++
+ export interface MonthBudget {
+   id: string; month: string; label: string
+   totalBudget: number; homePart: number; walletPart: number; bankPart: number
+   variableExpenses: VariableExpense[]
+   fixedExpenses: FixedExpense[]
+-  savingGoals: SavingGoal[]
++  // Legacy field from before saving goals became global - no longer written,
++  // kept optional only so old month docs can be migrated once on first load.
++  savingGoals?: SavingGoal[]
+   variableCategoryBases: Record<string, number>
+   fixedCategoryBases: Record<string, number>
+   // Which categories show up in "Add expense" / "Add fixed" / budget editors.
+@@ -69,7 +77,6 @@ export function normalizeMonth(m: MonthBudget): MonthBudget {
+     bankPart: m.bankPart ?? 0,
+     variableExpenses: m.variableExpenses ?? [],
+     fixedExpenses: m.fixedExpenses ?? [],
+-    savingGoals: m.savingGoals ?? [],
+     variableCategoryBases: m.variableCategoryBases ?? {},
+     fixedCategoryBases: m.fixedCategoryBases ?? {},
+     activeVariableCategories: m.activeVariableCategories?.length ? m.activeVariableCategories : [...VARIABLE_TYPES],
+@@ -94,7 +101,7 @@ export function emptyMonth(monthId?: string): MonthBudget {
+   return {
+     id, month: id, label: monthLabel(id),
+     totalBudget: 0, homePart: 0, walletPart: 0, bankPart: 0,
+-    variableExpenses: [], fixedExpenses: [], savingGoals: [],
++    variableExpenses: [], fixedExpenses: [],
+     variableCategoryBases: Object.fromEntries(VARIABLE_TYPES.map(t => [t, 0])),
+     fixedCategoryBases: Object.fromEntries(FIXED_TYPES.map(t => [t, 0])),
+     activeVariableCategories: [...VARIABLE_TYPES],
+@@ -103,15 +110,15 @@ export function emptyMonth(monthId?: string): MonthBudget {
+   }
+ }
+ 
+-// Carries a returning user's budget plan (income split + category limits +
+-// ongoing saving goals) into a new calendar month, with a clean slate of
+-// actual transactions for that month.
++// Carries a returning user's budget plan (income split + category limits)
++// into a new calendar month, with a clean slate of actual transactions for
++// that month. Saving goals aren't part of this - they're global, see
++// SavingsData / db.ts savingsDocRef.
+ export function rolloverMonth(monthId: string, prev: MonthBudget): MonthBudget {
+   return {
+     id: monthId, month: monthId, label: monthLabel(monthId),
+     totalBudget: prev.totalBudget, homePart: prev.homePart, walletPart: prev.walletPart, bankPart: prev.bankPart ?? 0,
+     variableExpenses: [], fixedExpenses: [],
+-    savingGoals: prev.savingGoals.map(g => ({ ...g })),
+     variableCategoryBases: { ...prev.variableCategoryBases },
+     fixedCategoryBases: { ...prev.fixedCategoryBases },
+     activeVariableCategories: prev.activeVariableCategories ? [...prev.activeVariableCategories] : [...VARIABLE_TYPES],
+@@ -241,7 +248,7 @@ export function buildMonthFromOnboarding(monthId: string, r: OnboardingResult):
+   return {
+     id: monthId, month: monthId, label: monthLabel(monthId),
+     totalBudget: r.income, homePart, walletPart, bankPart,
+-    variableExpenses: [], fixedExpenses: [], savingGoals: [],
++    variableExpenses: [], fixedExpenses: [],
+     variableCategoryBases, fixedCategoryBases,
+     activeVariableCategories: [...VARIABLE_TYPES],
+     activeFixedCategories: [...FIXED_TYPES],
