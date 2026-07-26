@@ -77,6 +77,20 @@ export async function listMonths(uid: string): Promise<MonthBudget[]> {
   return snap.docs.map(d => normalizeMonth(d.data() as MonthBudget))
 }
 
+// ── Account deletion (GDPR right to erasure) ──────────────────────────────────
+// Deletes every document the app has ever written for this user. Firestore
+// has no recursive delete from the client, so subcollections are enumerated
+// and removed explicitly before the profile document itself.
+export async function deleteAllUserData(uid: string): Promise<void> {
+  const monthsSnap = await getDocs(collection(db, 'users', uid, 'months'))
+  await Promise.all(monthsSnap.docs.map(d => deleteDoc(d.ref)))
+
+  const dataSnap = await getDocs(collection(db, 'users', uid, 'data'))
+  await Promise.all(dataSnap.docs.map(d => deleteDoc(d.ref)))
+
+  await deleteDoc(doc(db, 'users', uid))
+}
+
 // ── Saving goals ──────────────────────────────────────────────────────────────
 // Saving goals live at the user level, not inside a month document - the
 // money you set aside in April is still saved in May. Months only ever

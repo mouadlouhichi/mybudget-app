@@ -10,6 +10,8 @@ import {
 } from '@/lib/store'
 import { CAT_ICON } from '@/lib/category-icons'
 import { Wallet, ArrowRight, ArrowLeft, Check, Sparkle, Bank } from '@phosphor-icons/react/dist/ssr'
+import { validate, incomeSchema } from '@/lib/validation'
+import { CURRENCIES, DEFAULT_CURRENCY } from '@/lib/currency'
 
 function currentMonthId() {
   const n = new Date()
@@ -19,7 +21,7 @@ function currentMonthId() {
 const STEPS = ['Income', 'Expense categories', 'Fixed bills', 'Strategy', 'Review'] as const
 
 export default function OnboardingPage() {
-  const { user, profile, loading: authLoading, signOut, completeOnboarding } = useAuth()
+  const { user, profile, loading: authLoading, signOut, completeOnboarding, setCurrency } = useAuth()
   const router = useRouter()
 
   const [step, setStep] = useState(0)
@@ -31,6 +33,8 @@ export default function OnboardingPage() {
     SUGGESTED_FIXED_CATEGORIES.filter(c => c.recommended).map(c => c.type)
   )
   const [strategyId, setStrategyId] = useState(MANAGEMENT_STRATEGIES.find(s => s.recommended)?.id ?? MANAGEMENT_STRATEGIES[0].id)
+  const [currency, setCurrencyCode] = useState(DEFAULT_CURRENCY)
+  const [incomeError, setIncomeError] = useState('')
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
 
@@ -57,6 +61,9 @@ export default function OnboardingPage() {
         income: incomeNum, variableCategories: variableCats, fixedCategories: fixedCats, strategyId,
       })
       await saveMonth(user.uid, month)
+      if (currency !== DEFAULT_CURRENCY) {
+        try { await setCurrency(currency) } catch (e) { console.error('currency save failed', e) }
+      }
 
       // Turn the strategy's savings share into a real, trackable goal.
       // Funded at 0 - it's a target to work towards, and creating it must
@@ -85,6 +92,14 @@ export default function OnboardingPage() {
     }
   }
 
+  function handleNext() {
+    if (step === 0) {
+      const r = validate(incomeSchema, income)
+      if (!r.ok) { setIncomeError(Object.values(r.errors)[0] ?? 'Enter a valid income.'); return }
+    }
+    if (canNext) setStep(s => s + 1)
+  }
+
   const canNext =
     step === 0 ? incomeNum > 0 :
     step === 1 ? variableCats.length > 0 :
@@ -111,21 +126,30 @@ export default function OnboardingPage() {
         <div className="glass p-6 space-y-4">
           {step === 0 && (
             <div className="space-y-3">
-              <p style={{ fontSize: 13, color: 'var(--t2)' }}>What's your monthly income? We'll use it to suggest budgets for each category.</p>
-              <input
-                className="field" style={{ fontSize: 18, fontWeight: 700 }}
-                placeholder="e.g. 8500" inputMode="decimal" type="number" min={0}
-                value={income} onChange={e => setIncome(e.target.value)}
-                autoFocus
-              />
-              <p style={{ fontSize: 11, color: 'var(--t3)' }}>Amount in MAD, before any deductions.</p>
+              <p style={{ fontSize: 13, color: 'var(--t2)' }}>What&rsquo;s your monthly income? We&rsquo;ll use it to suggest budgets for each category.</p>
+              <div style={{ display: 'flex', gap: 10 }}>
+                <select
+                  className="field" style={{ width: 108, flexShrink: 0 }} value={currency}
+                  onChange={e => setCurrencyCode(e.target.value)} aria-label="Currency"
+                >
+                  {CURRENCIES.map(c => <option key={c.code} value={c.code}>{c.code}</option>)}
+                </select>
+                <input
+                  className="field" style={{ fontSize: 18, fontWeight: 700 }}
+                  placeholder="e.g. 8500" inputMode="decimal" type="number" min={0}
+                  value={income} onChange={e => { setIncome(e.target.value); setIncomeError('') }}
+                  aria-invalid={!!incomeError} autoFocus
+                />
+              </div>
+              {incomeError && <p role="alert" style={{ fontSize: 11, color: 'var(--bad)' }}>{incomeError}</p>}
+              <p style={{ fontSize: 11, color: 'var(--t3)' }}>Your take-home income for the month, before any deductions.</p>
             </div>
           )}
 
           {step === 1 && (
             <div className="space-y-2">
               <p style={{ fontSize: 13, color: 'var(--t2)', marginBottom: 4 }}>
-                Pick the categories you spend on day to day. We've preselected the ones most people need.
+                Pick the categories you spend on day to day. We&rsquo;ve preselected the ones most people need.
               </p>
               {SUGGESTED_VARIABLE_CATEGORIES.map(c => {
                 const Icon = CAT_ICON[c.type]
@@ -240,7 +264,7 @@ export default function OnboardingPage() {
             <div className="space-y-3">
               <div className="glass-2" style={{ padding: 14 }}>
                 <p style={{ fontSize: 11, color: 'var(--t3)', fontWeight: 700 }}>MONTHLY INCOME</p>
-                <p className="f-display" style={{ fontSize: 22, fontWeight: 700, color: 'var(--t1)' }}>{incomeNum.toLocaleString('fr-MA')} MAD</p>
+                <p className="f-display" style={{ fontSize: 22, fontWeight: 700, color: 'var(--t1)' }}>{incomeNum.toLocaleString(undefined)} {currency}</p>
               </div>
               <div className="glass-2" style={{ padding: 14, display: 'flex', gap: 12 }}>
                 {([
@@ -254,7 +278,7 @@ export default function OnboardingPage() {
                       <p style={{ fontSize: 11, color: 'var(--t3)', fontWeight: 700 }}>{e.label}</p>
                     </div>
                     <p className="num" style={{ fontSize: 15, fontWeight: 700, color: 'var(--t1)', marginTop: 1 }}>
-                      {e.val.toLocaleString('fr-MA')} MAD
+                      {e.val.toLocaleString(undefined)} {currency}
                     </p>
                   </div>
                 ))}
@@ -275,7 +299,7 @@ export default function OnboardingPage() {
               {envelopes.savings > 0 && (
                 <p style={{ fontSize: 11.5, color: 'var(--t3)', lineHeight: 1.45 }}>
                   We&rsquo;ll create a &ldquo;{DEFAULT_SAVINGS_GOAL_NAME}&rdquo; goal with a{' '}
-                  {envelopes.savings.toLocaleString('fr-MA')} MAD monthly target. Rename or remove it anytime.
+                  {envelopes.savings.toLocaleString(undefined)} {currency} monthly target. Rename or remove it anytime.
                 </p>
               )}
             </div>
@@ -290,7 +314,7 @@ export default function OnboardingPage() {
               </button>
             )}
             {step < STEPS.length - 1 ? (
-              <button onClick={() => canNext && setStep(s => s + 1)} disabled={!canNext} className="btn-primary tap">
+              <button onClick={handleNext} disabled={!canNext} className="btn-primary tap">
                 Continue <ArrowRight size={16} weight="bold" />
               </button>
             ) : (

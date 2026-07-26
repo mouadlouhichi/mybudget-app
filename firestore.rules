@@ -1,22 +1,100 @@
 rules_version = '2';
 
 // Flousy — Firestore security rules
-// Every document lives under /users/{uid}, and only the signed-in owner
-// (auth.uid === uid) may read or write their own data. Deploy with:
+//
+// Every document lives under /users/{uid} and only the signed-in owner may
+// touch it. Beyond ownership these rules also validate the *shape* of what
+// gets written: without that, an authenticated client could store arbitrary
+// fields or a multi-megabyte document under its own path and there'd be
+// nothing to stop it. Deploy with:
 //   firebase deploy --only firestore:rules
 
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    match /users/{uid} {
-      allow read, write: if request.auth != null && request.auth.uid == uid;
+    function isOwner(uid) {
+      return request.auth != null && request.auth.uid == uid;
+    }
 
+    function data() {
+      return request.resource.data;
+    }
+
+    // Guards against a client storing an unbounded blob. Firestore's own
+    // ceiling is 1 MiB; we stay well under it.
+    function withinSizeLimit() {
+      return request.resource.size() < 400 * 1024;
+    }
+
+    function isMoney(v) {
+      return v is number && v >= 0 && v <= 1000000000;
+    }
+
+    function isShortString(v, maxLen) {
+      return v is string && v.size() <= maxLen;
+    }
+
+    match /users/{uid} {
+
+      // ── Profile ──
+      // Only the fields the app actually writes are permitted, and `plan` is
+      // pinned to 'free': a client must never be able to promote itself to a
+      // paid tier. Flipping it to 'pro' is a job for a trusted server /
+      // payment webhook using the Admin SDK, which bypasses these rules.
+      allow read: if isOwner(uid);
+
+      allow create: if isOwner(uid)
+        && withinSizeLimit()
+        && data().keys().hasOnly([
+             'uid', 'email', 'displayName', 'photoURL', 'plan',
+             'currency', 'createdAt', 'onboardingComplete'
+           ])
+        && data().uid == uid
+        && isShortString(data().email, 320)
+        && isShortString(data().displayName, 120)
+        && data().plan == 'free'
+        && isShortString(data().currency, 8);
+
+      allow update: if isOwner(uid)
+        && withinSizeLimit()
+        && data().diff(resource.data).affectedKeys().hasOnly([
+             'email', 'displayName', 'photoURL', 'currency', 'onboardingComplete', 'plan'
+           ])
+        // plan may be present in the payload but must not change value.
+        && (!('plan' in data().diff(resource.data).affectedKeys()) || data().plan == resource.data.plan)
+        && (!('currency' in data()) || isShortString(data().currency, 8))
+        && (!('displayName' in data()) || isShortString(data().displayName, 120))
+        && (!('onboardingComplete' in data()) || data().onboardingComplete is bool);
+
+      allow delete: if isOwner(uid);
+
+      // ── Monthly budgets ──
+      // Keyed YYYY-MM. Transaction arrays are capped so a single month
+      // document can't grow without bound.
       match /months/{monthId} {
-        allow read, write: if request.auth != null && request.auth.uid == uid;
+        allow read, delete: if isOwner(uid);
+
+        allow write: if isOwner(uid)
+          && withinSizeLimit()
+          && monthId.matches('^[0-9]{4}-[0-9]{2}$')
+          && data().id == monthId
+          && isMoney(data().totalBudget)
+          && isMoney(data().bankPart)
+          && isMoney(data().homePart)
+          && isMoney(data().walletPart)
+          && data().variableExpenses is list
+          && data().variableExpenses.size() <= 2000
+          && data().fixedExpenses is list
+          && data().fixedExpenses.size() <= 500;
       }
 
+      // ── Saving goals + any future user-level docs ──
       match /data/{docId} {
-        allow read, write: if request.auth != null && request.auth.uid == uid;
+        allow read, delete: if isOwner(uid);
+
+        allow write: if isOwner(uid)
+          && withinSizeLimit()
+          && (docId != 'savings' || (data().goals is list && data().goals.size() <= 200));
       }
     }
 

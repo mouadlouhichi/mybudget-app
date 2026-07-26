@@ -8,9 +8,15 @@ export type FixedType = string
 
 export interface VariableExpense {
   id: string; name: string; amount: number; type: ExpenseType; date: string; person?: string
+  // Which money place this was paid from. Optional only so month documents
+  // written before this field existed still load - normalizeMonth backfills
+  // them to 'bank'. Every new expense records it, and adding/editing/deleting
+  // an expense moves the matching amount in or out of that place.
+  place?: MoneyPlace
 }
 export interface FixedExpense {
   id: string; name: string; amount: number; type: FixedType; base: number; date?: string
+  place?: MoneyPlace
 }
 
 /* ── Money places: every dirham lives in one of three places ── */
@@ -87,8 +93,10 @@ export function normalizeMonth(m: MonthBudget): MonthBudget {
     bankPart: m.bankPart ?? 0,
     strategyId: m.strategyId ?? MANAGEMENT_STRATEGIES[0].id,
     monthlySavingsTarget: m.monthlySavingsTarget ?? 0,
-    variableExpenses: m.variableExpenses ?? [],
-    fixedExpenses: m.fixedExpenses ?? [],
+    // Backfill `place` on legacy rows so spend accounting has something to
+    // work with. 'bank' matches where onboarding puts all income.
+    variableExpenses: (m.variableExpenses ?? []).map(e => ({ ...e, place: e.place ?? 'bank' })),
+    fixedExpenses: (m.fixedExpenses ?? []).map(e => ({ ...e, place: e.place ?? 'bank' })),
     variableCategoryBases: m.variableCategoryBases ?? {},
     fixedCategoryBases: m.fixedCategoryBases ?? {},
     activeVariableCategories: m.activeVariableCategories?.length ? m.activeVariableCategories : [...VARIABLE_TYPES],
@@ -103,6 +111,41 @@ export function normalizeMonth(m: MonthBudget): MonthBudget {
 export function withMoneyPlaceDelta(month: MonthBudget, place: MoneyPlace, delta: number): Partial<MonthBudget> {
   const field = MONEY_PLACE_FIELD[place]
   return { [field]: Math.max(0, month[field] + delta) } as Partial<MonthBudget>
+}
+
+/* ── Spend accounting ──────────────────────────────────────────────────────
+   Logging an expense is real money leaving a real place. These helpers keep
+   bankPart/homePart/walletPart in step with the transaction list so the
+   money-place tiles always reflect what's actually left, and reversing an
+   action (delete, or edit) always puts back exactly what it took.
+   ------------------------------------------------------------------------ */
+
+export interface SpendLike { amount: number; place?: MoneyPlace }
+
+// Applies the net effect of replacing `before` with `after` on the money
+// places. Either side may be null (null before = creation, null after =
+// deletion). Handles the awkward case where an edit moves the expense to a
+// different place: the old place is refunded and the new one debited.
+export function applySpendDelta(
+  month: MonthBudget,
+  before: SpendLike | null,
+  after: SpendLike | null,
+): Partial<MonthBudget> {
+  const deltas: Partial<Record<MoneyPlace, number>> = {}
+  const bump = (p: MoneyPlace, d: number) => { deltas[p] = (deltas[p] ?? 0) + d }
+
+  if (before) bump(before.place ?? 'bank', before.amount)   // refund the old charge
+  if (after)  bump(after.place ?? 'bank', -after.amount)    // apply the new one
+
+  const patch: Partial<MonthBudget> = {}
+  for (const [place, delta] of Object.entries(deltas) as [MoneyPlace, number][]) {
+    if (!delta) continue
+    const field = MONEY_PLACE_FIELD[place]
+    // Clamp at zero: a place can be drained but never go negative, which
+    // would render as a nonsensical "-300 in Wallet" tile.
+    patch[field] = Math.max(0, (patch[field] ?? month[field]) + delta)
+  }
+  return patch
 }
 
 // Moves cash between two money places, conserving the total. Income always
@@ -388,6 +431,40 @@ export function buildMonthFromOnboarding(monthId: string, r: OnboardingResult): 
 
 // Name used for the savings goal auto-created at the end of onboarding.
 export const DEFAULT_SAVINGS_GOAL_NAME = 'Monthly savings'
+
+/* ── Saving goal money movement ────────────────────────────────────────────
+   A goal's `current` is real money that physically left a money place. Any
+   operation that changes it must move the same amount the other way, or the
+   app's books stop balancing (money silently created or destroyed).
+   ------------------------------------------------------------------------ */
+
+// Funding: money leaves `place` and lands in the goal.
+export function fundGoal(month: MonthBudget, place: MoneyPlace, amount: number): Partial<MonthBudget> {
+  if (amount <= 0) return {}
+  return withMoneyPlaceDelta(month, place, -Math.min(amount, moneyPlaceAmount(month, place)))
+}
+
+// Withdrawing: money leaves the goal and returns to `place`. Clamped to
+// what the goal actually holds.
+export function withdrawFromGoal(
+  month: MonthBudget, goal: SavingGoal, place: MoneyPlace, amount: number,
+): { monthPatch: Partial<MonthBudget>; goal: SavingGoal; moved: number } {
+  const moved = Math.max(0, Math.min(amount, goal.current))
+  if (!moved) return { monthPatch: {}, goal, moved: 0 }
+  return {
+    monthPatch: withMoneyPlaceDelta(month, place, moved),
+    goal: { ...goal, current: goal.current - moved },
+    moved,
+  }
+}
+
+// Deleting a goal must return whatever it still holds - otherwise that money
+// simply vanishes from the app's accounting (it already left its money place
+// when the goal was funded).
+export function releaseGoalFunds(month: MonthBudget, goal: SavingGoal): Partial<MonthBudget> {
+  if (goal.current <= 0) return {}
+  return withMoneyPlaceDelta(month, SOURCE_TO_PLACE[goal.source], goal.current)
+}
 
 // Harmonised, desaturated palette - single accent family (warm tan/gold)
 // plus muted semantic hues. No purple, no neon, saturation kept under 80%.

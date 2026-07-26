@@ -1,6 +1,7 @@
 'use client'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { useAuth } from '@/lib/auth-context'
 import { EnvelopeSimple, LockSimple, User, ArrowRight, Wallet } from '@phosphor-icons/react/dist/ssr'
 
@@ -15,18 +16,38 @@ export default function LoginPage() {
   const [notice, setNotice]   = useState('')
   const [loading, setLoading] = useState(false)
 
+  function friendly(e: unknown): string {
+    const code = (e as { code?: string })?.code ?? ''
+    const map: Record<string, string> = {
+      'auth/invalid-credential': 'That email or password is incorrect.',
+      'auth/wrong-password': 'That email or password is incorrect.',
+      'auth/user-not-found': 'No account found with that email.',
+      'auth/email-already-in-use': 'An account with that email already exists. Try signing in.',
+      'auth/weak-password': 'Please choose a password of at least 6 characters.',
+      'auth/invalid-email': 'That email address doesn\u2019t look right.',
+      'auth/too-many-requests': 'Too many attempts. Please wait a moment and try again.',
+      'auth/network-request-failed': 'Network problem. Check your connection and try again.',
+      'auth/popup-closed-by-user': 'Sign-in was cancelled.',
+    }
+    if (map[code]) return map[code]
+    const msg = (e as { message?: string })?.message ?? 'Something went wrong. Please try again.'
+    return msg.replace('Firebase: ', '').replace(/\(auth\/[^)]+\)\.?/, '').trim()
+  }
+
   async function handleGoogle() {
     try { setLoading(true); setError(''); await signInGoogle(); router.replace('/dashboard') }
-    catch (e: any) { setError(e.message.replace('Firebase: ', '')); setLoading(false) }
+    catch (e: unknown) { setError(friendly(e)); setLoading(false) }
   }
   async function handleEmail() {
     try {
       setLoading(true); setError('')
       if (!email || !pass || (mode === 'signup' && !name)) { setError('Please fill in all fields.'); setLoading(false); return }
+      if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { setError('That email address doesn\u2019t look right.'); setLoading(false); return }
+      if (mode === 'signup' && pass.length < 6) { setError('Please choose a password of at least 6 characters.'); setLoading(false); return }
       if (mode === 'signup') await signUpEmail(email, pass, name)
       else await signInEmail(email, pass)
       router.replace('/dashboard')
-    } catch (e: any) { setError(e.message.replace('Firebase: ', '')); setLoading(false) }
+    } catch (e: unknown) { setError(friendly(e)); setLoading(false) }
   }
   async function handleReset() {
     try {
@@ -34,7 +55,7 @@ export default function LoginPage() {
       if (!email) { setError('Enter your email first.'); setLoading(false); return }
       await resetPassword(email)
       setNotice('Password reset email sent — check your inbox.')
-    } catch (e: any) { setError(e.message.replace('Firebase: ', '')) }
+    } catch (e: unknown) { setError(friendly(e)) }
     finally { setLoading(false) }
   }
 
@@ -145,6 +166,13 @@ export default function LoginPage() {
             <span key={b} style={{ fontSize: 11, color: 'var(--t3)', fontWeight: 600 }}>{b}</span>
           ))}
         </div>
+
+        <p style={{ textAlign: 'center', fontSize: 11.5, color: 'var(--t3)', marginTop: 14, lineHeight: 1.6 }}>
+          By continuing you agree to our{' '}
+          <Link href="/terms" style={{ color: 'var(--t2)', textDecoration: 'underline', textUnderlineOffset: '2px' }}>Terms</Link>
+          {' '}and{' '}
+          <Link href="/privacy" style={{ color: 'var(--t2)', textDecoration: 'underline', textUnderlineOffset: '2px' }}>Privacy Policy</Link>.
+        </p>
       </div>
     </div>
   )
