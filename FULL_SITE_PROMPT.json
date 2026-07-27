@@ -1,0 +1,592 @@
+{
+  "prompt_title": "FULL SITE UPDATE PROMPT — Flousy (from README.md)",
+  "version": "1.0.0",
+  "generated_at": "2026-07-27",
+  "source_readme": "mybudget-app/README.md",
+  "deployment_target": "https://optimus-the-ai-platform-to-7e5g9hznv-mouadlouhichis-projects.vercel.app/",
+  "rebrand_target": "Flousy",
+  "scope": "full_site_rewrite",
+  "site_type": "single_page_landing_marketing",
+  "objective": "Completely replace/update the deployed site using the full content of mybudget-app/README.md. Rebrand as Flousy. Reflect every major README section with accurate copy, features, architecture notes, and design direction.",
+  "brand": {
+    "name": "Flousy",
+    "tagline_hero": "A private, mobile-first budget tracker that knows the difference between what your money is for and where it actually is.",
+    "tone": "Calm, precise, trustworthy, slightly editorial. Avoid hype words. Use clean typography.",
+    "primary_color_hex": "#00685f",
+    "primary_container_hex": "#008378",
+    "primary_fixed_dim_hex": "#6bd8cb",
+    "primary_fixed_hex": "#89f5e7",
+    "surface_hex": "#f5faf8",
+    "inverse_surface_hex": "#2c3130",
+    "surface_variant_hex": "#eaefed",
+    "surface_container_hex": "#e4e9e7",
+    "outline_variant_hex": "#bcc9c6",
+    "on_surface_hex": "#171d1c",
+    "on_background_hex": "#171d1c",
+    "dark_mode_default": false,
+    "dark_mode_toggle": true,
+    "font_family": "Inter",
+    "font_weights": ["400", "500", "600", "700"],
+    "headline_letter_spacing": "-0.02em",
+    "label_style": {
+      "font_size": "12px",
+      "line_height": "16px",
+      "letter_spacing": "0.05em",
+      "font_weight": "500"
+    },
+    "body_md": {
+      "font_size": "14px",
+      "line_height": "20px",
+      "font_weight": "400"
+    },
+    "body_lg": {
+      "font_size": "16px",
+      "line_height": "24px",
+      "font_weight": "400"
+    },
+    "icons_library": "Material Symbols Outlined",
+    "icon_default_weight": 400,
+    "icon_active_fill": 1,
+    "spacing_gap_lg": "24px",
+    "spacing_margin_mobile": "16px",
+    "spacing_margin_desktop": "48px",
+    "border_radius_default": "0.25rem",
+    "border_radius_lg": "0.5rem",
+    "border_radius_xl": "0.75rem",
+    "border_radius_2xl": "1.5rem",
+    "border_radius_full": "9999px",
+    "visual_language": {
+      "cards": "bg-surface-variant/10 with border: 1px solid outline-variant/30, rounded-2xl, soft-depth-card shadow",
+      "glass": true,
+      "corner_cards": "rounded-xl",
+      "corner_sections": "rounded-2xl",
+      "corner_pills": "rounded-full"
+    }
+  },
+  "page_structure": {
+    "layout": "responsive_single_page_landing",
+    "navigation": {
+      "sticky": true,
+      "anchor_links": ["Why Flousy", "Features", "Quick Start", "Architecture", "Security", "Privacy", "Roadmap"],
+      "cta_button_text": "Open App",
+      "cta_button_style": "primary-container bg, white text, rounded-xl, hover scale",
+      "mobile_menu": "collapsible_hamburger_slide_down",
+      "logo_left": "Flousy with small teal circle icon (primary-fixed)",
+      "theme_toggle": "sun_moon_switching_dark_class_on_html_persist_localStorage"
+    }
+  },
+  "sections": [
+    {
+      "id": "hero",
+      "anchor": "#why-flousy",
+      "label": "Hero",
+      "headline_h1": "A private, mobile-first budget tracker that knows the difference between what your money is for and where it actually is.",
+      "sub_headline": "Two axes — Budget envelope (what it's for) vs Money place (where it is).",
+      "visual_description": "Split layout. Left: headline + brief paragraph + two CTAs (Get Started / Read Docs). Right: stylized card illustration showing Envelopes and Places axes with icons (assignment, home, account_balance_wallet). Glass-card aesthetic.",
+      "badge_row": ["CI", "Tests (57 passing)", "Next.js 14", "TypeScript strict", "Firebase", "PWA"],
+      "badge_style": "pill rounded-full bg-surface-variant text-label-sm uppercase"
+    },
+    {
+      "id": "why_flousy",
+      "anchor": "#why-flousy",
+      "label": "Why Flousy",
+      "core_invariant": "Every dirham is conserved. Log an expense and the money leaves a real place. Delete it and it comes back. Fund a savings goal and it moves out of your account; withdraw and it returns.",
+      "table_content": {
+        "columns": ["Question", "Example", "Flousy calls it"],
+        "rows": [
+          {"question": "What is this money for?", "example": "Rent is a need, dinner out is a want", "flousy_term": "Budget envelope"},
+          {"question": "Where is this money sitting?", "example": "In the bank, in a drawer, in my wallet", "flousy_term": "Money place"}
+        ]
+      },
+      "stat_box": "57 tests enforce the money math.",
+      "design": "Clean two-column text + compact illustration showing invariant cycle (arrow loop: Expense → Place → Restore). Dark background (inverse-surface), white text."
+    },
+    {
+      "id": "features",
+      "anchor": "#features",
+      "label": "Features",
+      "layout": "bento_grid_three_subcolumns",
+      "sub_sections": [
+        {
+          "id": "budgeting",
+          "headline": "Four strategies. Zero guesswork.",
+          "bullets": [
+            "Four strategies — 50/30/20, Zero-Based, Envelope, Pay-Yourself-First. Each splits income into needs / wants / savings envelopes whose shares always sum to exactly 100%.",
+            "Auto-scaled category budgets. Your chosen categories are scaled to fill their envelope to the dirham. Pick fewer categories and each gets a bigger slice — the envelope is never left underspent.",
+            "Guided onboarding — income → categories → bills → strategy → review.",
+            "Editable per-category caps and a live Budget Plan card tracking spend against each envelope."
+          ],
+          "visual": "Small progress card (category name, amount spent / cap, colored bar — primary for under, error/tertiary for over)."
+        },
+        {
+          "id": "money_tracking",
+          "headline": "Three places. Every dirham accounted for.",
+          "bullets": [
+            "Three money places — Bank, Home, Wallet. All income starts in the bank; Move money transfers between them, always conserving the total.",
+            "Every expense records which place it was paid from and debits it. Add, edit and delete all reconcile correctly — including when an edit moves an expense to a different place.",
+            "Variable expenses and fixed monthly charges with full create / edit / delete, search and category filtering.",
+            "Saving goals are global — they survive month rollover — with deposit and withdraw. Deleting a funded goal returns its balance rather than vaporising it.",
+            "Month-to-month navigation; a new month inherits your plan with a clean slate of transactions."
+          ],
+          "visual": "Three stacked cards (Bank / Home / Wallet) with amounts and trend arrows (+2.4% style)."
+        },
+        {
+          "id": "platform",
+          "headline": "Built for privacy and portability.",
+          "bullets": [
+            "Email/password and Google sign-in, with redirect fallback for in-app browsers that block popups, password reset and email verification.",
+            "12 currencies (MAD, EUR, USD, GBP, CAD, CHF, AED, SAR, EGP, TND, DZD, XOF) with locale-aware formatting.",
+            "Custom categories with colour and icon pickers.",
+            "CSV export of everything, and one-click account deletion.",
+            "Live Firestore sync with optimistic writes that roll back on failure.",
+            "Dark mode, keyboard-accessible dialogs, installable PWA with an offline app shell."
+          ],
+          "visual": "Icon grid (6 items) using Material Symbols (email, google, currency_exchange, palette, download, delete) in grid-cols-3, colored circles (primary-fixed-dim bg) with white icons."
+        }
+      ]
+    },
+    {
+      "id": "quick_start",
+      "anchor": "#quick-start",
+      "label": "Quick Start",
+      "prerequisites": "Node.js 18+, free Firebase project.",
+      "commands": [
+        "git clone https://github.com/mouadlouhichi/mybudget-app.git",
+        "cd mybudget-app",
+        "npm install",
+        "cp .env.local.example .env.local   # fill in Firebase values",
+        "npm run dev"
+      ],
+      "note_block": "Missing or incomplete Firebase credentials won't crash the app — /login and /dashboard render a clear 'Firebase isn't configured' screen instead.",
+      "design": "Split layout — left: title + steps; right: terminal/code screenshot style card. Dark bg-inverse-surface, rounded-xl, monospace font."
+    },
+    {
+      "id": "firebase_setup",
+      "anchor": "#firebase-setup",
+      "label": "Firebase Setup",
+      "warning_callout": "Always deploy firestore.rules. Without it, Firestore either blocks every read/write (the app looks broken) or — if you picked test mode — lets anyone read and write anyone's financial data.",
+      "steps": [
+        "Create a project at https://console.firebase.google.com",
+        "Enable authentication — Authentication → Sign-in method → enable Email/Password and Google",
+        "Create the database — Firestore Database → Create database. Production mode is correct — the rules in this repo replace the defaults.",
+        "Register a web app — Project settings → General → Your apps → add a Web app, then copy the six config values into .env.local.",
+        "Deploy the security rules — npm install -g firebase-tools; firebase login; firebase use --add; firebase deploy --only firestore:rules"
+      ],
+      "design": "Numbered steps with small teal numbered circles (primary-container bg, white number). Compact terminal snippet for step 5."
+    },
+    {
+      "id": "env_vars",
+      "anchor": "#env",
+      "label": "Environment Variables",
+      "table_required_vars": [
+        {"variable": "NEXT_PUBLIC_FIREBASE_API_KEY", "location": "Project settings → Your apps → Web app"},
+        {"variable": "NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN", "location": "<project>.firebaseapp.com"},
+        {"variable": "NEXT_PUBLIC_FIREBASE_PROJECT_ID", "location": "Project settings → General"},
+        {"variable": "NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET", "location": "<project>.appspot.com"},
+        {"variable": "NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID", "location": "Cloud Messaging sender ID"},
+        {"variable": "NEXT_PUBLIC_FIREBASE_APP_ID", "location": "Web app ID (1:…:web:…)"}
+      ],
+      "optional_vars": [
+        {"variable": "NEXT_PUBLIC_ANALYTICS", "values": ["plausible", "ga"], "note": "Activates telemetry seam in src/lib/analytics.ts. Unset = nothing is ever sent."}
+      ],
+      "design": "Card container (rounded-2xl, soft-depth-card) wrapping clean HTML table (w-full, text-sm, alternating surface-variant/5 rows)."
+    },
+    {
+      "id": "scripts",
+      "anchor": "#scripts",
+      "label": "Scripts",
+      "table": [
+        {"command": "npm run dev", "description": "Dev server at localhost:3000"},
+        {"command": "npm run build", "description": "Production build"},
+        {"command": "npm start", "description": "Serve the production build"},
+        {"command": "npm run typecheck", "description": "tsc --noEmit (strict)"},
+        {"command": "npm run lint", "description": "ESLint"},
+        {"command": "npm run test", "description": "Vitest, single run"},
+        {"command": "npm run test:watch", "description": "Vitest, watch mode"},
+        {"command": "npm run format", "description": "Prettier over src/"},
+        {"command": "npm run check", "description": "typecheck + lint + test — run before pushing", "highlighted": true, "badge": "primary-fixed star badge"}
+      ],
+      "design": "Two-column responsive table; command monospace (font-mono, text-primary), description body text."
+    },
+    {
+      "id": "architecture",
+      "anchor": "#architecture",
+      "label": "Architecture",
+      "directory_tree": {
+        "root": "src/",
+        "branches": [
+          {"name": "app/", "description": "Next.js App Router (page, login, onboarding, dashboard, privacy, terms, error, loading, not-found)"},
+          {"name": "components/", "description": "ui (Modal, ConfirmDialog, shared primitives), modals (Expense, Fixed, Savings, MoveMoney, Settings), tabs (Overview, Variable, Fixed, Savings)"},
+          {"name": "lib/", "description": "store.ts (domain model + money math pure), db.ts (Firestore read/write/subscribe), auth-context.tsx, currency, validation, export, analytics"}
+        ]
+      },
+      "design_notes": [
+        "store.ts holds all money math as pure functions with no React or Firebase imports — enables cheap exhaustive testing.",
+        "Dashboard orchestrates; components render. All Firestore writes flow through persist() / persistSavings(), applying optimistic updates and rolling back on failure.",
+        "Design tokens live in CSS variables (globals.css). Dark mode is a token override, so components needed no changes."
+      ],
+      "visual": "File-tree card (monospace font, indented lines, folder/file icons). Dark background code block. Teal left-border (border-l-2 border-primary) for design notes."
+    },
+    {
+      "id": "core_concepts",
+      "anchor": "#core-concepts",
+      "label": "Core Concepts",
+      "sub_sections": [
+        {
+          "id": "envelopes_vs_places",
+          "headline": "Envelopes vs Money Places",
+          "ascii_diagram": "INCOME  ─┬─► envelopes  (what it's FOR)    needs · wants · savings\n         └─► places     (where it IS)      bank  · home  · wallet",
+          "note": "These are independent. A strategy sets envelope shares; it never decides placement. All income starts in the bank, and you move cash out explicitly."
+        },
+        {
+          "id": "strategies",
+          "headline": "Strategies",
+          "table": [
+            {"name": "50/30/20 Rule (default)", "needs": "50%", "wants": "30%", "savings": "20%"},
+            {"name": "Zero-Based Budgeting", "needs": "60%", "wants": "25%", "savings": "15%"},
+            {"name": "Envelope System", "needs": "55%", "wants": "35%", "savings": "10%"},
+            {"name": "Pay Yourself First", "needs": "45%", "wants": "25%", "savings": "30%"}
+          ],
+          "note": "Shares always total 100%, and envelope amounts always sum to your exact income — the savings envelope absorbs any rounding remainder."
+        },
+        {
+          "id": "category_buckets",
+          "headline": "Category Buckets",
+          "typescript_snippet": "bucketOf('Autre', 'variable')  // → 'wants'  (a miscellaneous purchase)\nbucketOf('Autre', 'fixed')     // → 'needs'  (a miscellaneous recurring bill)",
+          "explanation": "Unknown custom categories default to wants for variable spending and needs for fixed bills, so a user-invented category can never quietly inflate the essentials envelope."
+        },
+        {
+          "id": "money_conservation",
+          "headline": "Money Conservation",
+          "table": [
+            {"action": "Add expense", "effect": "Debit its money place"},
+            {"action": "Edit amount", "effect": "Apply only the difference"},
+            {"action": "Edit place", "effect": "Refund the old place, debit the new one"},
+            {"action": "Delete expense", "effect": "Refund in full"},
+            {"action": "Fund goal", "effect": "Debit place → increase goal"},
+            {"action": "Withdraw goal", "effect": "Decrease goal → credit place"},
+            {"action": "Delete funded goal", "effect": "Return the balance to its place"},
+            {"action": "Move money", "effect": "Debit source, credit destination"}
+          ],
+          "note": "Places clamp at zero and never display a negative balance."
+        }
+      ]
+    },
+    {
+      "id": "data_model",
+      "anchor": "#data-model",
+      "label": "Data Model",
+      "document_tree": {
+        "users/{uid}": {
+          "doc_type": "UserProfile",
+          "fields": ["plan: 'free' | 'pro' (rule-protected — clients cannot change it)", "currency: string", "onboardingComplete: bool"]
+        },
+        "users/{uid}/months/{YYYY-MM}": {
+          "doc_type": "MonthBudget",
+          "fields": ["totalBudget, bankPart, homePart, walletPart", "strategyId, monthlySavingsTarget", "variableExpenses[] (id, name, amount, type, date, place)", "fixedExpenses[] (base, place)", "variable/fixedCategoryBases", "active…Categories, categoryColors, categoryIcons", "updatedAt"]
+        },
+        "users/{uid}/data/savings": {
+          "doc_type": "SavingsData",
+          "fields": ["goals[] (id, name, target, current, source, active)"]
+        }
+      },
+      "notes": [
+        "Saving goals are global, not per-month. Money set aside in April is still saved in May. Months only ever move money into or out of a goal — they never own it, so nothing resets at rollover.",
+        "Documents written by older versions are upgraded on read by normalizeMonth(), which backfills missing fields (including defaulting a legacy expense's place to bank)."
+      ]
+    },
+    {
+      "id": "security",
+      "anchor": "#security",
+      "label": "Security",
+      "headline": "Rules enforced, not just suggested.",
+      "rules_bullets": [
+        "Only request.auth.uid == uid can read or write a user's documents",
+        "Field whitelists — unknown fields are rejected",
+        "Numeric ranges on every money field (0 … 1e9)",
+        "Array caps: 2,000 variable expenses, 500 fixed, 200 goals",
+        "400 KB document ceiling (Firestore's own limit is 1 MiB)",
+        "Month IDs must match ^[0-9]{4}-[0-9]{2}$",
+        "plan is pinned to 'free' — a client cannot promote itself to Pro",
+        "Everything else denied by default"
+      ],
+      "warning": "Upgrading a user to Pro must happen server-side via the Admin SDK (which bypasses rules), driven by a payment webhook.",
+      "other_measures": ["Zod validation on every form", "CSV-injection neutralisation in exports", "No bank connections and no card details ever collected"],
+      "design": "Dark card (inverse-surface bg) with red/primary accent lines for rules; clean checklist with teal checkmarks before each item."
+    },
+    {
+      "id": "testing",
+      "anchor": "#testing",
+      "label": "Testing",
+      "headline": "57 tests. Zero rounding leaks.",
+      "stats": [
+        {"suite": "store.test.ts", "covers": "Strategy shares, envelope conservation, bucket resolution, spend deltas, goal lifecycle, normalisation, rollover"},
+        {"suite": "flows.test.ts", "covers": "End-to-end user journeys asserting total cash is conserved"},
+        {"suite": "validation.test.ts", "covers": "Rejection of empty / NaN / Infinity / negative / absurd input"},
+        {"suite": "export.test.ts", "covers": "CSV escaping, injection safety, ordering, empty accounts"}
+      ],
+      "assertions": [
+        "Envelope shares sum to exactly 1",
+        "Envelope amounts sum to exactly the income — no rounding leak",
+        "Category budgets fill their envelope to the dirham",
+        "Add → edit → delete returns to the exact starting balance",
+        "Fund → withdraw → delete conserves total cash"
+      ],
+      "test_inputs_example": ["1", "7", "12345", "1000001"],
+      "visual": "Small data cards showing test inputs with green confirmation badges."
+    },
+    {
+      "id": "accessibility",
+      "anchor": "#accessibility",
+      "label": "Accessibility",
+      "headline": "Built to be used by everyone.",
+      "bullets": [
+        "Pinch-zoom enabled (maximum-scale=1 removed) — WCAG 1.4.4",
+        "Dialogs: role=dialog, aria-modal, focus trap, Escape to close, focus restored to trigger on close, background scroll locked",
+        "Visible :focus-visible rings on all interactive elements",
+        "aria-pressed / aria-current / aria-expanded on toggles, tabs and accordions; aria-label on every icon-only control",
+        "Inline validation errors announced with role=alert",
+        "Full prefers-reduced-motion support"
+      ],
+      "design": "Simple icon + text list; accessibility icon (accessibility) in primary-fixed-dim circle."
+    },
+    {
+      "id": "pwa",
+      "anchor": "#pwa",
+      "label": "Progressive Web App",
+      "headline": "Installable. Offline-ready. Never stale.",
+      "copy": [
+        "Installable on iOS and Android with a manifest, maskable icons and a service worker that caches the app shell for offline launch.",
+        "The service worker deliberately never caches Firestore or Auth traffic. Showing stale financial data would be worse than an honest offline state, and the Firebase SDK has its own offline persistence. It also only registers in production, so it can't serve stale bundles during development."
+      ],
+      "visual": "Phone mockup or icon grid (install, offline_pin, sync with red cross for no stale data)."
+    },
+    {
+      "id": "deployment",
+      "anchor": "#deployment",
+      "label": "Deployment",
+      "headline": "Standard Next.js. Any host.",
+      "commands": ["vercel"],
+      "pre_flight_checklist": [
+        "Set the six NEXT_PUBLIC_FIREBASE_* variables in your host's dashboard",
+        "firebase deploy --only firestore:rules",
+        "Add your production domain to Firebase → Authentication → Settings → Authorized domains",
+        "Fill in the operating entity and governing jurisdiction placeholders in /privacy and /terms",
+        "Optionally set NEXT_PUBLIC_ANALYTICS and add the provider script"
+      ],
+      "design": "Checklist card with interactive-style checkboxes (styled div elements or real checkboxes for accessibility)."
+    },
+    {
+      "id": "ci",
+      "anchor": "#ci",
+      "label": "Continuous Integration",
+      "headline": "Typecheck. Lint. Test. Build. Every push.",
+      "description": "The workflow runs typecheck → lint → test → build on every push and PR. It ships at ci/github-actions-ci.yml rather than in .github/workflows/ because the GitHub App used to push this branch lacks the workflows permission.",
+      "activation_instructions": ["mkdir -p .github/workflows", "git mv ci/github-actions-ci.yml .github/workflows/ci.yml", "git commit -m 'ci: enable GitHub Actions workflow'", "git push"],
+      "visual": "Horizontal pipeline diagram with 4 connected circles (typecheck, lint, test, build) — active in primary, completed in primary-fixed-dim."
+    },
+    {
+      "id": "privacy",
+      "anchor": "#privacy",
+      "label": "Privacy & Your Data",
+      "headline": "Your budget is yours alone.",
+      "bullets": [
+        "Your budget data is private to your account and is never sold or shared",
+        "No bank connections. Card and account numbers are never requested",
+        "No third-party tracking — analytics are opt-in and off by default",
+        "Export everything as CSV from Settings at any time",
+        "Delete your account and all data from Settings; this clears every subcollection, the profile document and the auth record"
+      ],
+      "design": "Calm, spacious section. Large text with shield/privacy icon (security). Soft surface-variant background."
+    },
+    {
+      "id": "roadmap",
+      "anchor": "#roadmap",
+      "label": "Roadmap",
+      "sub_sections": [
+        {
+          "id": "shipped",
+          "headline": "Shipped",
+          "items": ["Edit everywhere", "Money-place accounting", "Goal withdrawals", "Real spend trajectory", "Legal pages", "CSV export", "Account deletion", "Hardened rules", "12 currencies", "Dark mode", "Offline shell", "CI", "57 tests"],
+          "visual": "Wrapped tag cloud — small teal pills (rounded-full, bg-primary-fixed, text-on-primary-fixed)."
+        },
+        {
+          "id": "next",
+          "headline": "Next",
+          "table": [
+            {"feature": "Stripe / Lemon Squeezy payments", "effort": "L", "notes": "plan field exists and is rule-protected; needs Checkout + Admin SDK webhook"},
+            {"feature": "Recurring fixed charges", "effort": "M", "notes": "Bills are re-entered each month today"},
+            {"feature": "Multi-month trends view", "effort": "M", "notes": "Data and listMonths() already available"},
+            {"feature": "CSV import", "effort": "M", "notes": "Migration path from spreadsheets"},
+            {"feature": "Budget alerts", "effort": "M", "notes": "'You've used 80% of Alimentation'"},
+            {"feature": "i18n (FR / AR)", "effort": "L", "notes": "UI is English while default categories are French"},
+            {"feature": "Shared / household budgets", "effort": "L", "notes": "Rules are strictly single-user today"},
+            {"feature": "Bank sync (Plaid / Tink)", "effort": "XL", "notes": "Post-MVP"}
+          ],
+          "effort_colors": {"L": "tertiary/yellow", "M": "orange", "XL": "error/red"}
+        },
+        {
+          "id": "limitations",
+          "headline": "Known Limitations",
+          "items": [
+            "Whole-document writes per month — fine to ~2,000 transactions/month (rule-enforced); a transactions subcollection is the fix if needed",
+            "Rules validate shape and size but don't rate-limit writes",
+            "Styling mixes Tailwind utilities with inline styles and CSS variables"
+          ],
+          "reference": "See MVP_TODO.md for the full audit."
+        }
+      ],
+      "design": "Split two-column — left: shipped tags; right: next table + limitations card."
+    },
+    {
+      "id": "troubleshooting",
+      "anchor": "#troubleshooting",
+      "label": "Troubleshooting",
+      "headline": "When something looks broken, it usually isn't.",
+      "items": [
+        {
+          "question": "Firebase isn't configured",
+          "solution": "One or more of the six NEXT_PUBLIC_FIREBASE_* variables is missing. Check .env.local and restart the dev server — Next.js only reads env files at startup.",
+          "severity_icon": "warning",
+          "severity_color": "tertiary"
+        },
+        {
+          "question": "Data won't load, or writes silently fail",
+          "solution": "Almost always undeployed security rules: firebase deploy --only firestore:rules. Otherwise check the browser console for permission-denied.",
+          "severity_icon": "warning",
+          "severity_color": "tertiary"
+        },
+        {
+          "question": "Google sign-in does nothing",
+          "solution": "Add your domain under Authentication → Settings → Authorized domains. In in-app browsers (Instagram, LinkedIn) popups are blocked; the app detects this and falls back to redirect automatically.",
+          "severity_icon": "warning",
+          "severity_color": "tertiary"
+        },
+        {
+          "question": "requires-recent-login when deleting an account",
+          "solution": "Firebase requires a fresh credential for destructive actions. Sign out, sign back in, and retry. Google accounts re-authenticate inline.",
+          "severity_icon": "warning",
+          "severity_color": "tertiary"
+        },
+        {
+          "question": "Build fails fetching fonts",
+          "solution": "Fonts load via <link> at runtime, not next/font (which fetches from Google at build time and breaks on restricted networks). If you see a 'Failed to download the stylesheet' warning, the build still succeeds — fonts simply fall back to system faces offline.",
+          "severity_icon": "warning",
+          "severity_color": "tertiary"
+        }
+      ],
+      "design": "Accordion-style cards (rounded-2xl, soft-depth-card, border-outline-variant/10). Question header (font-label-md, uppercase) and expandable body (font-body-md). Default: all collapsed. Small warning icon (warning) in tertiary color."
+    },
+    {
+      "id": "footer",
+      "anchor": "bottom",
+      "label": "Footer",
+      "left_content": "Logo text 'Flousy' + tagline 'Built with Next.js, Firebase and TypeScript.'",
+      "center_right_links": ["README.md (GitHub)", "MVP_TODO.md", "Privacy", "Terms"],
+      "bottom_bar": "© 2026 Flousy. Small font-label-sm text, muted outline-variant color.",
+      "design": "Full-width dark footer (bg-inverse-surface), top border (border-t border-outline/30), generous vertical padding (py-xl), centered mobile, spaced columns desktop."
+    }
+  ],
+  "technical_implementation": {
+    "framework": "Next.js 14+ (App Router) or static site generator",
+    "language": "TypeScript (tsconfig.json strict mode)",
+    "styling": "Tailwind CSS with CSS variables / design tokens (globals.css). PostCSS config and tailwind.config.ts extensions matching README colors.",
+    "fonts": {
+      "main": "Inter (Google Fonts, weights 400–700)",
+      "icons": "Material Symbols Outlined (Google Fonts)"
+    },
+    "component_requirements": [
+      {"component": "Badge", "spec": "pill / rounded-full, label-sm, uppercase tracking"},
+      {"component": "Card", "spec": "soft-depth-card, rounded-2xl, optional glass overlay"},
+      {"component": "SectionTitle", "spec": "headline-lg, tight letter-spacing, bold"},
+      {"component": "CodeBlock", "spec": "dark bg, monospace, rounded-xl, syntax-like coloring"},
+      {"component": "Table", "spec": "responsive, alternating rows, clean borders"},
+      {"component": "Accordion", "spec": "for troubleshooting; keyboard accessible"}
+    ],
+    "state_management": [
+      "Theme toggle (localStorage)",
+      "Mobile menu (useState)",
+      "Accordion open states"
+    ],
+    "design_token_integration": {
+      "source_file": "design/flousy_dashboard_dark/code.html",
+      "colors_map": "primary (#00685f), surface (#f5faf8), inverse-surface (#2c3130), surface-variant (#eaefed), outline-variant (#bcc9c6), primary-fixed-dim (#6bd8cb)",
+      "font_family": "Inter for all text roles",
+      "font_size_roles": ["label-sm (11px)", "body-md (14px)", "body-lg (16px)", "headline-md (20px)", "headline-lg-mobile (24px)", "headline-lg (32px)"],
+      "border_radius": ["DEFAULT (0.25rem)", "lg (0.5rem)", "xl (0.75rem)", "2xl (1.5rem)", "full (9999px)"],
+      "spacing": ["base (4px)", "sm (8px)", "md (16px)", "lg (24px)", "xl (32px)", "margin-mobile (16px)", "margin-desktop (48px)"]
+    },
+    "accessibility": {
+      "aria_label_icon_buttons": true,
+      "aria_pressed_current_expanded": true,
+      "dialog_patterns": {"role": "dialog", "aria_modal": true, "focus_trap": true, "escape_close": true, "focus_restored": true},
+      "prefers_reduced_motion": true,
+      "focus_visible_rings": "visible on all interactive elements; no outline-none without replacement"
+    },
+    "pwa_offline": {
+      "manifest_json": {
+        "name": "Flousy",
+        "short_name": "Flousy",
+        "theme_color": "#00685f",
+        "background": "#f5faf8 or #2c3130"
+      },
+      "service_worker": "Register in production only; do not cache Firestore/auth traffic."
+    }
+  },
+  "copy_text_extracts": {
+    "hero": "A private, mobile-first budget tracker that knows the difference between what your money is for and where it actually is.",
+    "why_intro": "Most budget apps conflate two different questions: What is this money for? (Rent is a need, dinner out is a want) → Budget envelope. Where is this money sitting? (In the bank, in a drawer, in my wallet) → Money place. Mixing them produces nonsense — like a budgeting rule deciding how much cash you keep at home. Flousy keeps the two axes strictly separate, and the accounting honours it: every dirham is conserved.",
+    "invariant_note": "That invariant — money is never silently created or destroyed — is enforced by 57 tests.",
+    "features_budgeting_full": "Four strategies — 50/30/20, Zero-Based, Envelope, Pay-Yourself-First. Each splits income into needs / wants / savings envelopes whose shares always sum to exactly 100%. Auto-scaled category budgets. Your chosen categories are scaled to fill their envelope to the dirham. Pick fewer categories and each gets a bigger slice — the envelope is never left underspent. Guided onboarding — income → categories → bills → strategy → review. Editable per-category caps and a live Budget Plan card tracking spend against each envelope.",
+    "features_money_tracking_full": "Three money places — Bank, Home, Wallet. All income starts in the bank; Move money transfers between them, always conserving the total. Every expense records which place it was paid from and debits it. Add, edit and delete all reconcile correctly — including when an edit moves an expense to a different place. Variable expenses and fixed monthly charges with full create / edit / delete, search and category filtering. Saving goals are global — they survive month rollover — with deposit and withdraw. Deleting a funded goal returns its balance rather than vaporising it. Month-to-month navigation; a new month inherits your plan with a clean slate of transactions.",
+    "features_platform_full": "Email/password and Google sign-in, with redirect fallback for in-app browsers that block popups, password reset and email verification. 12 currencies (MAD, EUR, USD, GBP, CAD, CHF, AED, SAR, EGP, TND, DZD, XOF) with locale-aware formatting. Custom categories with colour and icon pickers. CSV export of everything, and one-click account deletion. Live Firestore sync with optimistic writes that roll back on failure. Dark mode, keyboard-accessible dialogs, installable PWA with an offline app shell.",
+    "firebase_warning": "Always deploy firestore.rules. Without it, Firestore either blocks every read/write (the app looks broken) or — if you picked test mode — lets anyone read and write anyone's financial data.",
+    "security_key_points": ["Only request.auth.uid == uid can read or write a user's documents.", "Field whitelists — unknown fields are rejected.", "Numeric ranges on every money field (0 … 1e9).", "Array caps: 2,000 variable expenses, 500 fixed, 200 goals.", "400 KB document ceiling.", "Month IDs must match ^[0-9]{4}-[0-9]{2}$.", "plan is pinned to 'free' — a client cannot promote itself to Pro.", "Everything else denied by default."],
+    "core_category_buckets_snippet": "bucketOf('Autre', 'variable')  // → 'wants'  (a miscellaneous purchase)\nbucketOf('Autre', 'fixed')     // → 'needs'  (a miscellaneous recurring bill)",
+    "core_category_buckets_explanation": "Unknown custom categories default to wants for variable spending and needs for fixed bills, so a user-invented category can never quietly inflate the essentials envelope.",
+    "data_model_note": "Saving goals are global, not per-month. Money set aside in April is still saved in May. Months only ever move money into or out of a goal — they never own it, so nothing resets at rollover.",
+    "testing_assertions": ["Envelope shares sum to exactly 1", "Envelope amounts sum to exactly the income — no rounding leak", "Category budgets fill their envelope to the dirham", "Add → edit → delete returns to the exact starting balance", "Fund → withdraw → delete conserves total cash"],
+    "pwa_note": "The service worker deliberately never caches Firestore or Auth traffic. Showing stale financial data would be worse than an honest offline state, and the Firebase SDK has its own offline persistence. It also only registers in production, so it can't serve stale bundles during development.",
+    "roadmap_shipped_exact": ["Edit everywhere", "Money-place accounting", "Goal withdrawals", "Real spend trajectory", "Legal pages", "CSV export", "Account deletion", "Hardened rules", "12 currencies", "Dark mode", "Offline shell", "CI", "57 tests"],
+    "roadmap_next_table": [
+      {"feature": "Stripe / Lemon Squeezy payments", "effort": "L", "notes": "plan field exists and is rule-protected; needs Checkout + Admin SDK webhook"},
+      {"feature": "Recurring fixed charges", "effort": "M", "notes": "Bills are re-entered each month today"},
+      {"feature": "Multi-month trends view", "effort": "M", "notes": "Data and listMonths() already available"},
+      {"feature": "CSV import", "effort": "M", "notes": "Migration path from spreadsheets"},
+      {"feature": "Budget alerts", "effort": "M", "notes": "'You've used 80% of Alimentation'"},
+      {"feature": "i18n (FR / AR)", "effort": "L", "notes": "UI is English while default categories are French"},
+      {"feature": "Shared / household budgets", "effort": "L", "notes": "Rules are strictly single-user today"},
+      {"feature": "Bank sync (Plaid / Tink)", "effort": "XL", "notes": "Post-MVP"}
+    ]
+  },
+  "asset_references": [
+    {"path": "design/flousy_dashboard_dark/code.html", "use": "main dark layout, colors, spacing"},
+    {"path": "design/flousy_dashboard_dark/screen.png", "use": "visual reference for card layout"},
+    {"path": "design/login_to_flousy/", "use": "onboarding / login visuals"},
+    {"path": "design/welcome_to_flousy/", "use": "welcome visuals"},
+    {"path": "design/onboarding_*", "use": "onboarding step visuals (income, categories, fixed bills, strategy, summary)"},
+    {"path": "design/serene_finance/", "use": "alternative calm aesthetic"}
+  ],
+  "asset_guidance_for_new_illustrations": "Calm, editorial, slightly editorial-finance style: muted teal backgrounds, glass cards, minimal icons, no stock-photo people. Keep everything abstract / geometric.",
+  "deliverable_format": {
+    "minimum_files": [
+      "Updated landing page (page.tsx or index.html)",
+      "Updated global CSS (globals.css) with design token variables",
+      "Updated tailwind.config.ts if needed for colors",
+      "Updated public/ manifest/icons if PWA updates needed",
+      "Updated /app route files if site structure changes"
+    ],
+    "optional_updates": [
+      "Updated README.md (optional — keep original for reference)"
+    ],
+    "pre_finish_confirmation_checklist": [
+      "Brand name changed to Flousy",
+      "Hero tagline and intro text match README exactly",
+      "All feature sections have accurate copy (no omissions of key claims like '57 tests', 'every dirham is conserved', 'global goals')",
+      "Accessibility attributes present (aria-label, focus management)",
+      "Dark/light mode works using design token palette",
+      "Mobile layout responsive (md: breakpoints, px-margin-mobile / md:px-margin-desktop)"
+    ]
+  },
+  "notes_for_agent": "Prompt generated from mybudget-app/README.md (Flousy budget tracker) with design references from design/ folder and deployment target at the provided Vercel URL. Use exact copy text where noted. Maintain accessibility and responsive design throughout."
+}
